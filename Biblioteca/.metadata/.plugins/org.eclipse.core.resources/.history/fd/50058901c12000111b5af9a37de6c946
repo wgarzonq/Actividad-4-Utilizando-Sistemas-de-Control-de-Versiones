@@ -1,0 +1,69 @@
+package biblioteca.com.clases;
+
+// Clase Libro
+public class Libro {
+
+	// Constructor de la clase Libro que contiene las propiedades de como se van a almacenar los libros en el objeto
+	public Libro(Integer id, String titulo, String editorial, String autor, String nPaginas, String idioma,
+			String imagen) {
+
+		// Se asignan los parametros del constructor a las respectivas propiedades de la clase
+		idLibro = id;
+
+		tituloLibro = titulo;
+
+		editorialLibro = editorial;
+
+		autorLibro = autor;
+
+		nPaginasLibro = nPaginas;
+
+		idiomaLibro = idioma;
+
+		imagenLibro = imagen;
+
+	}
+	
+	public Integer idLibro() {
+		return idLibro;
+	}
+
+	public String tituloLibro() {
+		return tituloLibro;
+	}
+
+	public String editorialLibro() {
+		return editorialLibro;
+	}
+
+	public String autorLibro() {
+		return autorLibro;
+	}
+
+	public String nPaginasLibro() {
+		return nPaginasLibro;
+	}
+
+	public String idiomaLibro() {
+		return idiomaLibro;
+	}
+
+	public String imagenLibro() {
+		return imagenLibro;
+	}
+
+	private Integer idLibro;
+
+	private String tituloLibro;
+
+	private String editorialLibro;
+
+	private String autorLibro;
+
+	private String nPaginasLibro;
+
+	private String idiomaLibro;
+
+	private String imagenLibro;
+
+}

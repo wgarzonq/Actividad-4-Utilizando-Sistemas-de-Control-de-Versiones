@@ -1,0 +1,31 @@
+import javax.swing.JFrame;
+
+import biblioteca.com.funciones.LlamarGlobales;
+import interfaz.Agregar;
+import interfaz.Busqueda;
+import interfaz.Inicio;
+import interfaz.Panel;
+import interfaz.Principal;
+
+public class main {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		
+		LlamarGlobales.getInstancia().getGestionMovimientos();
+		
+		LlamarGlobales.getInstancia().getGestionLibros();
+		
+		LlamarGlobales.getInstancia().getGestionLibros().cargar_libros();
+
+		Inicio marcoInicio = new Inicio();
+
+		marcoInicio.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		marcoInicio.setResizable(false);
+
+		marcoInicio.setVisible(true);
+		
+	}
+
+}

@@ -1,0 +1,123 @@
+package biblioteca.com.funciones;
+
+import java.util.*;
+
+import biblioteca.com.clases.Libro;
+
+//Clase GestionLibros
+/*
+* En esta clase se hacen las operaciones de agregar, traer, buscar, cargar los libros para la visualización
+* en la interfaz gráfica. Tomando como base la clase Libro donde se estructura que información debe 
+* contener cada objeto
+*/
+public class GestionLibros {
+
+	// Se construye una lista vacia para iterar los objetos de la clase Libro
+	private LinkedList<Libro> listaLibros = new LinkedList<Libro>();
+
+	// Método para agregar un objeto Libro a la lista listaLibros
+	public void agregar_libro(Libro libro) {
+		listaLibros.add(libro);
+	}
+
+	// Método que devuelve el iterable de la lista LinkedList
+	public ListIterator<Libro> traer_libros() {
+		return listaLibros.listIterator();
+	}
+
+	// Método para devolver el iterable de la lista mediante una busqueda
+	// por Título, Autor y Editorial
+	public ListIterator<Libro> buscar_titulo(String busqueda) {
+
+		// Condicional si el parametro busqueda está vacio
+		if (busqueda == null || busqueda.trim().isEmpty()) {
+			return listaLibros.listIterator();
+		}
+
+		// Lista vacia para almacenar los resultados
+		LinkedList<Libro> resultados = new LinkedList<Libro>();
+
+		ListIterator<Libro> iteradorLibros = listaLibros.listIterator();
+
+		while (iteradorLibros.hasNext()) {
+
+			Libro libroActual = iteradorLibros.next();
+
+			if (libroActual.tituloLibro().toLowerCase().contains(busqueda.toLowerCase())
+					|| libroActual.editorialLibro().toLowerCase().contains(busqueda.toLowerCase())
+					|| libroActual.autorLibro().toLowerCase().contains(busqueda.toLowerCase())) {
+
+				resultados.add(libroActual);
+			}
+		}
+
+		return resultados.listIterator();
+	}
+
+	public void cargar_libros() {
+
+		listaLibros.add(new Libro(1, "Conversaciones Con Dios 1", "Penguin Random House", "Neale Donnal Walsch", "248",
+				"Español", "src/img/img_1.jpg"));
+		listaLibros.add(new Libro(2, "La Casa De Los Espíritus", "Debolsillo", "Isabel Allende", "453", "Español",
+				"src/img/img_2.jpg"));
+		listaLibros.add(new Libro(3, "EL PUENTE DONDE HABITAN LAS MARIPOSAS", "Debolsillo", "Nazareth Castellanos",
+				"278", "Español", "src/img/img_3.jpg"));
+		listaLibros.add(new Libro(4, "Las Mujeres Que Aman Demasiado", "Debolsillo", "Robin Norwood", "332", "Español",
+				"src/img/img_4.jpg"));
+		listaLibros.add(new Libro(5, "Delirio", "Debolsillo", "Laura Restrepo", "303", "Español", "src/img/img_5.jpg"));
+
+		listaLibros
+				.add(new Libro(6, "Gente Normal", "Debolsillo", "Sally Rooney", "252", "Español", "src/img/img_6.jpg"));
+		listaLibros.add(new Libro(7, "It Eso", "Debolsillo", "Stephen King", "1502", "Español", "src/img/img_7.jpg"));
+		listaLibros.add(new Libro(8, "Muchas Vidas, Muchos Maestros", "Debolsillo", "Brian Weiss", "220", "Español",
+				"src/img/img_8.jpg"));
+		listaLibros.add(new Libro(9, "Sapiens De Animales A Dioses", "Debolsillo", "Yuval Noah Harari", "493",
+				"Español", "src/img/img_9.jpg"));
+		listaLibros.add(new Libro(10, "Cumbres Borrascosas", "Penguin Random House", "Emily Jane Bronte", "409",
+				"Español", "src/img/img_10.jpg"));
+
+		listaLibros.add(new Libro(11, "Mujeres Que Corren Con Los Lobos", "Debolsillo", "Clarissa Pinkola Estes", "774",
+				"Español", "src/img/img_11.jpg"));
+		listaLibros.add(new Libro(12, "El amor en los tiempos del cólera", "Debolsillo", "Gabriel Garcia Marquez",
+				"494", "Español", "src/img/img_12.jpg"));
+		listaLibros.add(new Libro(13, "Paula", "Debolsillo", "Isabel Allende", "432", "Español", "src/img/img_13.jpg"));
+		listaLibros.add(new Libro(14, "Ensayo Sobre La Ceguera", "Debolsillo", "Jose Saramago", "374", "Español",
+				"src/img/img_14.jpg"));
+		listaLibros.add(new Libro(15, "Pensar Rápido, Pensar Despacio", "Debolsillo", "Daniel Kahneman", "666",
+				"Español", "src/img/img_15.jpg"));
+
+		listaLibros.add(new Libro(16, "Harry Potter Y La Piedra Filosofal", "Salamandra", "J. K. Rowling", "285",
+				"Español", "src/img/img_16.jpg"));
+		listaLibros.add(new Libro(17, "Memorias Del Subsuelo", "Penguin Random House", "Fiodor Mijailovich Dostoievski",
+				"178", "Español", "src/img/img_17.jpg"));
+		listaLibros.add(new Libro(18, "Piense Y Hágase Rico", "Debolsillo", "Napoleon Hill", "388", "Español",
+				"src/img/img_18.jpg"));
+		listaLibros.add(new Libro(19, "Las Intermitencias De La Muerte", "Debolsillo", "Jose Saramago", "250",
+				"Español", "src/img/img_19.jpg"));
+		listaLibros.add(new Libro(20, "Crimen Y Castigo", "Penguin Random House", "Fiodor Mijailovich Dostoievski",
+				"746", "Español", "src/img/img_20.jpg"));
+
+		listaLibros.add(new Libro(21, "El Monje Que Vendió Su Ferrari (dos Presentaciones)", "Debolsillo",
+				"Robin Sharma", "209", "Español", "src/img/img_21.jpg"));
+		listaLibros.add(new Libro(22, "Cronica De Una Muerte Anunciada", "Debolsillo", "Gabriel Garcia Márquez", "136",
+				"Español", "src/img/img_22.jpg"));
+		listaLibros.add(
+				new Libro(23, "Fahrenheit 451", "Debolsillo", "Ray Bradbury", "179", "Español", "src/img/img_23.jpg"));
+		listaLibros.add(new Libro(24, "Mujeres Del Alma Mia", "Debolsillo", "Isabel Allende", "189", "Español",
+				"src/img/img_24.jpg"));
+		listaLibros.add(new Libro(25, "La Verdad Sobre El Caso Harry Quebert", "Debolsillo", "Joel Dicker", "793",
+				"Español", "src/img/img_25.jpg"));
+
+		listaLibros.add(new Libro(26, "Momentos estelares de la humanidad", "Debolsillo", "Stefan Zweig", "291",
+				"Español", "src/img/img_26.jpg"));
+		listaLibros.add(new Libro(27, "Cien años de soledad", "Debolsillo", "Gabriel Garcia Márquez", "503", "Español",
+				"src/img/img_27.jpg"));
+		listaLibros.add(new Libro(28, "Mil soles esplendidos", "Debolsillo", "Khaled Hosseini", "411", "Español",
+				"src/img/img_28.jpg"));
+		listaLibros.add(new Libro(29, "Harry Potter Estuche 7 Libros", "Salamandra", "J. K. Rowling", "4489", "Español",
+				"src/img/img_29.jpg"));
+		listaLibros.add(new Libro(30, "Los Hermanos Karamazov", "Penguin Random House",
+				"Fiodor Mijailovich Dostoievski", "1130", "Español", "src/img/img_30.jpg"));
+
+	}
+}

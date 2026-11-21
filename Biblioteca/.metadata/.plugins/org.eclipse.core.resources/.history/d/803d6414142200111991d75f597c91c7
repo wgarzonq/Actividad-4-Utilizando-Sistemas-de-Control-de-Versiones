@@ -1,0 +1,111 @@
+package biblioteca.com.funciones;
+
+import java.util.*;
+
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+
+import biblioteca.com.clases.Libro;
+
+import biblioteca.com.clases.Usuario;
+import biblioteca.com.clases.Movimiento;
+
+// Clase GestionMovimientos
+/*
+ * Aquí se controlan las solicitudes, los prestamos y las devoluciones de los libros
+ * partiendo por la clase Movimiento
+ */
+public class GestionMovimientos {
+
+	// Lista vacia para almacenar los prestamos
+	LinkedList<Movimiento> prestamo = new LinkedList<Movimiento>();
+
+	// Lista vacia para almacenar las devoluciones
+	LinkedList<Movimiento> devolucion = new LinkedList<Movimiento>();
+
+	// Objeto tipo cola para que lleguen las solicitudes una detras de otra y asi mismo atenderlas
+	Queue<Movimiento> colaSolicitudes = new LinkedList<>();
+
+	// Objeto tipo pila para que se almacenen las devoluciones de los libros, de la más antigua a la más reciente
+	Stack<Movimiento> pilaDevolucion = new Stack<Movimiento>();
+
+	// Método para crear una nueva solicitud, recibiendo como parametros: el usuario logueado, el libro a solicitar
+	// y un objeto JPanel para que me salga la ventana de alerta indicando el exito de la solicitud
+	public void crear_solicitud(Usuario usuario, Libro libro, JPanel panel) {
+
+		// Se carga un objeto Movimiento con el usuario logueado y el libro a solicitar
+		Movimiento movimiento = new Movimiento(usuario, libro);
+
+		// El movimiento creado se añade a la cola de solicitudes
+		colaSolicitudes.offer(movimiento);
+
+		// Ventana de alerta que presenta el exito de la transacción
+		JOptionPane.showMessageDialog(panel, "Por favor espere 24 horas, si se acepto el prestamo", "Solicitud Creada",
+				1);
+
+	}
+
+	// Método que retorna el iterador de la cola de solicitudes
+	public Iterator<Movimiento> traer_solicitudes() {
+
+		return colaSolicitudes.iterator();
+
+	}
+
+	// Método del botón para aceptar la primera solicitud que presentará la cola
+	public void aceptar_solicitud(JPanel panel) {
+
+		// Objeto Movimiento que almacena la primera solicitud presentada por la cola,
+		// al hacer la lectura del registro de inmediato elimina el dato de la cola
+		Movimiento solicitudAceptada = colaSolicitudes.poll();
+
+		// Verifica si el objeto Movimiento no es nulo
+		if (solicitudAceptada != null) {
+			
+			// El objeto Movimiento se añade a la lista prestamo
+			prestamo.add(solicitudAceptada);
+
+			// Se activa la ventana de alerta avisando que el proceso de prestamo fue exitoso
+			JOptionPane.showMessageDialog(panel, "Se realizó el prestamo correctamente", "Prestamo Exitoso", 1);
+		}
+
+	}
+
+	// Método para cancelar la solicitud de prestamo
+	public void cancelar_solicitud(JPanel panel) {
+
+		// Remover el primer elemento de la cola
+		colaSolicitudes.remove();
+
+		// Alerta de exito en la eliminación del elemento
+		JOptionPane.showMessageDialog(panel, "Se cancelo la solicitud de prestamo", "Solicitud Cancelada", 1);
+
+	}
+
+	// Método para devolver el iterador con la lista de prestamos
+	public ListIterator<Movimiento> traer_prestamos() {
+		
+		//Devolver el iterador con la lista de prestamos
+		return prestamo.listIterator();
+	}
+
+	// Método para añadir a la pila de devoluciones un prestamo
+	public void devolver_libro(JPanel panel, Movimiento movimiento) {
+
+		// Se añade el movimiento del prestamo a la pila de devoluciones
+		pilaDevolucion.add(movimiento);
+		
+		// Se remueve el objeto Movimiento de la lista de prestamos
+		prestamo.remove(movimiento);
+
+		// Alerta que se realizo el proceso de devolución de manera exitosa
+		JOptionPane.showMessageDialog(panel, "Se realizó la devolución correctamente", "Devolución Exitosa", 1);
+
+	}
+
+	// Método para traer el iterador de la pila de devoluciones
+	public ListIterator<Movimiento> traer_devoluciones() {
+		return pilaDevolucion.listIterator();
+	}
+
+}

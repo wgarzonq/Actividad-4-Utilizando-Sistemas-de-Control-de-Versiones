@@ -1,0 +1,53 @@
+package interfaz;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+import javax.swing.JPanel;
+
+// Clase FondoPanel
+// Imagen que se utiliza de background para el frame que ayuda a que la visualización
+// sea agradable para el usuario
+class FondoPanel extends JPanel {
+	
+	// Constructor de la clase
+	public FondoPanel() {
+		
+		// Excepción de la llamada de la imagen
+		try {
+			
+			// Llamar la imagen que vamos a usar como background
+			imagen = ImageIO.read(new File("src/img/icon/fondo.jpg"));
+			
+		} catch (IOException e) {
+			
+			// Imprimir la excepción en consola
+			e.printStackTrace();
+		}
+
+		// Configuración del layout
+		setLayout(new BorderLayout());
+	}
+
+	// Método para pintar el background en el frame
+	@Override
+	protected void paintComponent(Graphics g) {
+		
+		// Configuración de la impresión del background que en este caso
+		// es configurar la imagen leida para que quede acomodada de manera organica
+		super.paintComponent(g);
+		g.drawImage(imagen, 0, 0, getWidth(), getHeight(), this);
+
+		Graphics2D g2 = (Graphics2D) g;
+		g2.setColor(new Color(0, 0, 0, 120));
+		g2.fillRect(0, 0, getWidth(), getHeight());
+	}
+
+	private Image imagen;
+}

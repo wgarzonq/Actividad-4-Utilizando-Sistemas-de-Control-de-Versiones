@@ -1,0 +1,4 @@
+INDEX VERSION 1.134+C:\Users\wquev\Videos\Universidad\Estructura de Datos\Biblioteca\.metadata\.plugins\org.eclipse.jdt.core
+1696264553.index
+1204385438.index
+1865797976.index

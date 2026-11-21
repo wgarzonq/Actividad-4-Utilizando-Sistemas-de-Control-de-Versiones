@@ -1,0 +1,28 @@
+Nombre: Carlos Andrés Salamanca Urrego
+Tipo de Documento: C.C
+Número de Documento: 342657908
+Usuario: SalaCarlos
+Clave: SalaCarlos
+Rol: 1
+
+Nombre: Melissa Alexandra Peralta Castro
+Tipo de Documento: C.C
+Número de Documento: 574874654
+Usuario: AlexaCas
+Clave: AlexaCas
+Rol: 1
+
+Nombre: Felipe Eduardo García Pérez
+Tipo de Documento: C.C
+Número de Documento: 568432432
+Usuario: GarEdu
+Clave: GarEdu
+Rol: 1
+
+Nombre: Hernan Camilo Pedraza Contreras
+Tipo de Documento: C.C
+Número de Documento: 694242432
+Usuario: Admin1
+Clave: Admin1
+Rol: 2
+

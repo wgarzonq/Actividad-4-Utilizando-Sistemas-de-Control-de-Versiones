@@ -1,0 +1,70 @@
+package biblioteca.com.clases;
+
+//Clase Usuario
+public class Usuario {
+
+	// Constructor de la clase Usuario, donde se definen los parametros con la información necesaria para que los Usuarios del aplicativo
+	// interactuen con el sistema
+	public Usuario(Integer id, String nombre, String tDocumento, String nDocumento, String alias, char[] contrasena,
+			String rol) {
+		
+		// Se asignan los parametros a las propiedades de la Clase
+		idUsuario = id;
+		
+		nombreUsuario = nombre;
+		
+		tDocumentoUsuario = tDocumento;
+		
+		nDocumentoUsuario = nDocumento;
+		
+		aliasUsuario = alias;
+		
+		contrasenaUsuario = contrasena;
+		
+		rolUsuario = rol;
+		
+	}
+	
+	public Integer idUsuario() {
+		return idUsuario;
+	}
+	
+	public String nombreUsuario() {
+		return nombreUsuario;
+	}
+	
+	public String tDocumentoUsuario() {
+		return tDocumentoUsuario;
+	}
+	
+	public String nDocumentoUsuario() {
+		return nDocumentoUsuario;
+	}
+	
+	public String aliasUsuario() {
+		return aliasUsuario;
+	}
+	
+	public char[] contrasenaUsuario() {
+		return contrasenaUsuario;
+	}
+	
+	public String rolUsuario() {
+		return rolUsuario;
+	}
+	
+	private Integer idUsuario;
+	
+	private String nombreUsuario;
+	
+	private String tDocumentoUsuario;
+	
+	private String nDocumentoUsuario;
+	
+	private String aliasUsuario;
+	
+	private char[] contrasenaUsuario;
+	
+	private String rolUsuario;
+
+}

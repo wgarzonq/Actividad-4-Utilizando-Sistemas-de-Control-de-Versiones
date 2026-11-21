@@ -1,0 +1,37 @@
+package biblioteca.com.funciones;
+
+public class LlamarGlobales {
+
+	private static LlamarGlobales instancia;
+
+	private GestionMovimientos gestionMovimientos;
+
+	private GestionLibros gestionLibros;
+
+	private LlamarGlobales() {
+		gestionMovimientos = new GestionMovimientos();
+
+		gestionLibros = new GestionLibros();
+	}
+
+	public static LlamarGlobales getInstancia() {
+		if (instancia == null) {
+			instancia = new LlamarGlobales();
+		}
+
+		return instancia;
+	}
+
+	public GestionMovimientos getGestionMovimientos() {
+
+		return gestionMovimientos;
+
+	}
+
+	public GestionLibros getGestionLibros() {
+
+		return gestionLibros;
+
+	}
+
+}

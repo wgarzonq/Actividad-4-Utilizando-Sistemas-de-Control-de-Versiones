@@ -1,0 +1,24 @@
+package biblioteca.com.clases;
+
+// Clase Movimiento
+
+/*
+ * La Clase Movimiento es la base para poder procesar como bien su nombre lo dice
+ * los movimientos del libro dentro de la biblioteca: como las solicitudes de prestamo,
+ * los propios prestamos y las devoluciones
+ */
+public class Movimiento {
+
+	// Contructor de la clase que requiere como parametro el usuario solicitante y el libro a solicitar
+	public Movimiento(Usuario usuario, Libro libro) {
+		
+		usuarioMovimiento = usuario;
+		
+		libroMovimiento = libro;
+	}
+	
+	public Usuario usuarioMovimiento;
+	
+	public Libro libroMovimiento;
+
+}

@@ -1,0 +1,59 @@
+package biblioteca.com.funciones;
+
+// Clase LlamarGlobales
+/*
+ * Esta clase se sigue evaluando ya que para el objetivo de este proyecto
+ * es pasable usarla pero en producción lo que se explica acontinuación
+ * no se puede hacer por la seguridad de los datos.
+ * 
+ * Aca llamaremos por unica ver las clases GestionMovimientos y GestionLibros
+ * para que las acciones que se realizan en el aplicativo sean sincronizadas en cada
+ * frame porque al instancias varias veces cada clase se crea un objeto nuevo
+ */
+public class LlamarGlobales {
+
+	// Propiedad estatica de la clase LlamarGlobales
+	private static LlamarGlobales instancia;
+
+	// Propiedad para instanciar la clase GestionMovimientos
+	private GestionMovimientos gestionMovimientos;
+
+	// Propiedad para instanciar la clase GestionLibros
+	private GestionLibros gestionLibros;
+
+	// Constructor donde instanciamos las propiedades de GestionMovimientos y GestionLibros
+	private LlamarGlobales() {
+		
+		// Instancia GestionMovimientos
+		gestionMovimientos = new GestionMovimientos();
+
+		// Instancia GestionLibros
+		gestionLibros = new GestionLibros();
+	}
+
+	// Método estatico para llamar la instancia de la clase global 
+	public static LlamarGlobales getInstancia() {
+		
+		// Si ya esta instanciada la clase Llamar globales, esta verificación evita que se repita el proceso
+		if (instancia == null) {
+			instancia = new LlamarGlobales();
+		}
+
+		// Retorna la instancia global
+		return instancia;
+	}
+
+	// Método publico que devuelve el objeto instanciado GestionMovimientos
+	public GestionMovimientos getGestionMovimientos() {
+
+		return gestionMovimientos;
+
+	}
+
+	public GestionLibros getGestionLibros() {
+
+		return gestionLibros;
+
+	}
+
+}

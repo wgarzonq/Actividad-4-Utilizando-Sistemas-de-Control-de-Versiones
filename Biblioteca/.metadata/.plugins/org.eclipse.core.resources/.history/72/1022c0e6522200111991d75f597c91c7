@@ -1,0 +1,573 @@
+package interfaz;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.ListIterator;
+import java.util.Map;
+
+import javax.imageio.ImageIO;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.JToolBar;
+import javax.swing.WindowConstants;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+
+import biblioteca.com.clases.Libro;
+import biblioteca.com.clases.Movimiento;
+import biblioteca.com.clases.Usuario;
+import biblioteca.com.funciones.GestionLibros;
+import biblioteca.com.funciones.GestionUsuarios;
+import biblioteca.com.funciones.LlamarGlobales;
+
+// Frame de la sección de busqueda
+public class Busqueda extends JFrame {
+
+	// Constructor del frame recibiendo como parametro un objeto GestionUsuarios
+	public Busqueda(GestionUsuarios usuario) {
+
+		// Configuración del Frame
+		Toolkit pantallaPrincipal = Toolkit.getDefaultToolkit();
+
+		Dimension tamanoPantalla = pantallaPrincipal.getScreenSize();
+
+		int alturaPantalla = tamanoPantalla.height;
+
+		int anchoPantalla = tamanoPantalla.width;
+
+		setSize(1000, 600);
+
+		setLocation(anchoPantalla / 8, alturaPantalla / 10);
+
+		setTitle("Biblioteca Jose María");
+
+		Image icono = pantallaPrincipal.getImage("src/img/icon/icono.png");
+
+		setIconImage(icono);
+
+		// Instancia de la clase para el fondo background de la ventana
+		FondoPanel fondo = new FondoPanel();
+
+		setContentPane(fondo);
+
+		// Configuración de las opciones de la barra de herramientas
+		// Ir a la ventana principal
+		Action accionInicio = new Acciones("Inicio", new ImageIcon("src/img/icon/inicio.png"), e -> {
+
+			// Direccionar a la ventana Principal
+			Principal vPrincipal = new Principal(usuario);
+
+			vPrincipal.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+			vPrincipal.setResizable(false);
+
+			vPrincipal.setVisible(true);
+
+			this.setVisible(false);
+
+		});
+
+		// Ir al Panel
+		Action accionPerfil = new Acciones("Perfil", new ImageIcon("src/img/icon/usuario.png"), e -> {
+
+			// Direccionar a la ventana Panel
+			Panel marcoPanel = new Panel(usuario);
+
+			marcoPanel.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+			marcoPanel.setResizable(false);
+
+			marcoPanel.setVisible(true);
+
+			this.setVisible(false);
+
+		});
+
+		// Cerrar sesión de usuario
+		Action accionSalir = new Acciones("Cerrar Sesión", new ImageIcon("src/img/icon/salir.png"), e -> {
+
+			// Se llama al método GestionUsuarios cerrar_sesion
+			usuario.cerrar_sesion();
+
+			// Direcciona a la ventana Inicio
+			Inicio vInicio = new Inicio();
+
+			vInicio.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+			vInicio.setResizable(false);
+
+			vInicio.setVisible(true);
+
+			this.setVisible(false);
+
+		});
+
+		// Se llama al usuario logueado
+		Usuario usuarioLogueado = usuario.traer_logueado();
+
+		// Se crea el menu desplegable como subtitulo el alias del usuario
+		JMenu menu = new JMenu(usuarioLogueado.aliasUsuario());
+
+		menu.setBackground(Color.black);
+
+		menu.setForeground(Color.white);
+
+		menu.setFont(new Font("Calibri", Font.PLAIN, 25));
+
+		menu.setOpaque(true);
+
+		// Se añade las opciones a la lista desplegable
+		JMenuItem itemPerfil = menu.add(accionPerfil);
+
+		JMenuItem itemSalir = menu.add(accionSalir);
+
+		itemPerfil.setBackground(Color.black);
+
+		itemPerfil.setForeground(Color.white);
+
+		itemSalir.setBackground(Color.black);
+
+		itemSalir.setForeground(Color.white);
+
+		menu.getPopupMenu().setBackground(Color.black);
+
+		// Se añade la lista a una barra de menu
+		JMenuBar barra_menus = new JMenuBar();
+
+		barra_menus.setBackground(Color.black);
+
+		barra_menus.setForeground(Color.white);
+
+		barra_menus.add(menu);
+
+		// Se añade la barra de menu a la barra de herramientas
+		JToolBar barra = new JToolBar();
+
+		barra.setFloatable(false);
+
+		barra.setBackground(Color.black);
+
+		barra.add(Box.createHorizontalGlue());
+
+		// Botón para añadir la opción de inicio en la barra de herramientas aparte de
+		// la lista desplegable
+		JButton btnInicio = barra.add(accionInicio);
+
+		btnInicio.setBackground(Color.BLACK);
+
+		btnInicio.setForeground(Color.WHITE);
+
+		btnInicio.setBorderPainted(false);
+
+		barra.addSeparator();
+
+		barra.add(barra_menus);
+
+		barra.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+
+		// Se añade la barra de herramientas al Frame
+		add(barra, BorderLayout.NORTH);
+
+		// Lamina del contenido de la ventana
+		LaminaBusqueda lamina = new LaminaBusqueda(usuarioLogueado);
+
+		add(lamina, BorderLayout.CENTER);
+
+		// Evitar la operación determinada al cerrar la ventana
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+
+		// Evento de ventana
+		this.addWindowListener(new WindowAdapter() {
+
+			// Método de evento por si se cierra la ventana
+			@Override
+			public void windowClosing(WindowEvent e) {
+
+				// Path de las imagenes subidas desde el aplicativo
+				String path = "src/img/img_temp/";
+
+				// Función para borrar todo el path suministrado al cerrar la ventana
+				borrarSubida(path);
+
+				// Liberar recursos
+				dispose();
+
+			}
+
+		});
+
+	}
+
+	// Clase privada para configurar las opciones de la barra de herramientas
+	private class Acciones extends AbstractAction {
+
+		// Contructor que recibe como parametros que deben llevar las funciones
+		public Acciones(String nombre, Icon icono, ActionListener evento) {
+
+			putValue(Action.NAME, nombre);
+
+			putValue(Action.SMALL_ICON, icono);
+
+			this.evento = evento;
+
+		}
+
+		// Evento de cada opción
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			// TODO Auto-generated method stub
+
+			evento.actionPerformed(e);
+
+		}
+
+		// Propiedad para almacenar el evento de cada opción
+		ActionListener evento;
+	}
+
+	// Función para borrar el Path suministrado de las imagenes subidas desde el
+	// aplicativo
+	public static void borrarSubida(String ruta) {
+
+		// Objeto file donde se asigna el Path suministrado
+		File carpeta = new File(ruta);
+
+		// Verificación donde evaluamos si el path existe y si es una carpeta
+		if (carpeta.exists() && carpeta.isDirectory()) {
+
+			// Array donde almacenamos la lista de archivos que contiene el directorio
+			File[] archivos = carpeta.listFiles();
+
+			// Verificación si el array esta vacio
+			if (archivos != null) {
+
+				// Se itera el array con los archivos del fichero
+				for (File archivo : archivos) {
+
+					// Eliminar cada archivo
+					archivo.delete();
+
+				}
+
+			}
+
+		}
+
+	}
+
+}
+
+// Lamina con el contenido de la vista busqueda
+class LaminaBusqueda extends JPanel {
+	
+	// Constructor requieriendo como parametro el usuario logueado
+	public LaminaBusqueda(Usuario usuario) {
+
+		// Se asigna el usuario logueado a una propiedad local
+		this.usuario = usuario;
+
+		// Se configura la lamina
+		setOpaque(false);
+
+		setLayout(new BorderLayout());
+
+		
+		// Título Principal
+		JLabel titulo = new JLabel("Biblioteca Jose Mária");
+
+		titulo.setForeground(Color.white);
+
+		titulo.setFont(new Font("Calibri", Font.PLAIN, 60));
+
+		// Caja que contiene el título prinicpal
+		Box caja1 = Box.createHorizontalBox();
+
+		caja1.add(Box.createHorizontalGlue());
+
+		caja1.add(titulo);
+
+		caja1.add(Box.createHorizontalGlue());
+		
+		
+		// Sección de entrada de usuario para buscar los libros
+		JLabel busqueda = new JLabel("Buscar Libro:");
+
+		busqueda.setForeground(Color.white);
+
+		busqueda.setFont(new Font("Calibri", Font.PLAIN, 30));
+
+		busqueda.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		// Se instancia el evento de busqueda
+		EscuchaCampo eventoCampo = new EscuchaCampo();
+
+		// Campo para la busqueda de los libros
+		busquedaCampo = new JTextField(30);
+
+		busquedaCampo.setFont(new Font("Calibri", Font.PLAIN, 30));
+
+		busquedaCampo.setMaximumSize(busquedaCampo.getPreferredSize());
+
+		busquedaCampo.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		// Se asocia el campo al evento de busqueda
+		busquedaCampo.getDocument().addDocumentListener(eventoCampo);
+
+		// Caja para almacenar la sección de busqueda de forma horizontal
+		Box caja2 = Box.createVerticalBox();
+
+		caja2.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		caja2.add(busqueda);
+
+		caja2.add(Box.createVerticalStrut(10));
+
+		caja2.add(busquedaCampo);
+		
+
+		// Se instancia la lamina que contiene la cuadrilla de libros para buscar
+		cartas = new CuadrillaBusqueda(this.usuario);
+
+		// Scroll asociado a la cuadrilla de libros
+		JScrollPane scroll = new JScrollPane(cartas, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+		scroll.getVerticalScrollBar().setUnitIncrement(16);
+
+		// Caja que contiene la cuadrilla de libros
+		Box caja3 = Box.createVerticalBox();
+
+		caja3.add(Box.createHorizontalGlue());
+
+		caja3.add(scroll);
+
+		caja3.add(Box.createHorizontalGlue());
+
+		
+		// Contenedor para acomodar verticalmente los elementos de la lamina
+		Box contenedor = Box.createVerticalBox();
+
+		contenedor.add(Box.createVerticalGlue());
+
+		contenedor.add(Box.createVerticalStrut(20));
+
+		contenedor.add(caja1);
+
+		contenedor.add(Box.createVerticalStrut(10));
+
+		contenedor.add(caja2);
+
+		contenedor.add(Box.createVerticalStrut(20));
+
+		contenedor.add(caja3);
+
+		contenedor.add(Box.createVerticalGlue());
+
+		
+		// Añadir el contenedor a la lamina
+		add(contenedor, BorderLayout.CENTER);
+	}
+
+	
+	// Evento de campo que al insetar, actualizar o eliminar texto ocurre una acción
+	private class EscuchaCampo implements DocumentListener {
+
+		// Si se inserta texto
+		@Override
+		public void insertUpdate(DocumentEvent e) {
+			// TODO Auto-generated method stub
+
+			// Llama a la función enviaTexto
+			enviarTexto();
+
+		}
+
+		// Si se elimina texto
+		@Override
+		public void removeUpdate(DocumentEvent e) {
+			// TODO Auto-generated method stub
+
+			// Llama a la función enviaTexto
+			enviarTexto();
+
+		}
+
+		// Si se actualiza el texto
+		@Override
+		public void changedUpdate(DocumentEvent e) {
+			// TODO Auto-generated method stub
+
+			// Llama a la función enviaTexto
+			enviarTexto();
+
+		}
+
+		// Función que envia el texto suministrado por el usuario a la lamina de busqueda
+		// en tiempo real
+		private void enviarTexto() {
+
+			// Se asigna a una variable String lo obtenido por el campo de texto
+			textoBusqueda = busquedaCampo.getText();
+
+			// Se pasa el texto obtenido del campo de busqueda a una función
+			// en especifico que tiene la lamina de CuadrillaBusqueda para poder modificar
+			// la interfaz gráfica con las coincidencias obtenidas
+			cartas.actualizarBusqueda(textoBusqueda);
+
+		}
+
+	}
+
+	// Se definen las propiedades que se usaran en toda la lamina
+	private JTextField busquedaCampo;
+
+	private String textoBusqueda;
+
+	private CuadrillaBusqueda cartas;
+
+	private Usuario usuario;
+
+}
+
+// Lamina CuadrillaBusqueda
+class CuadrillaBusqueda extends JPanel {
+
+	// Constructor de la lamina que pide el usuario logueado
+	public CuadrillaBusqueda(Usuario usuario) {
+
+		// Se asigna el usuario logueado a una variable propia de la clase
+		this.usuario = usuario;
+
+		// Se configura la lamina
+		setLayout(new GridLayout(0, 3, 20, 20));
+
+		setBackground(Color.DARK_GRAY);
+
+		setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+		
+		// Se llama la clase global LlamarGlobales enfocada a la instancia de GestionLibros
+		libros = LlamarGlobales.getInstancia().getGestionLibros();
+
+		// Se asigna un iterador con la lista de libros cargados por medio del aplicativo o a base de código
+		ListIterator<Libro> iterador = libros.traer_libros();
+
+		// Se verifica si el iterador contiene elementos
+		while (iterador.hasNext()) {
+
+			// Se asigna el objeto iterado a un objeto Libro
+			Libro libro = iterador.next();
+
+			// Se asigna otro iterador con la lista de prestamos que se han hecho
+			ListIterator<Movimiento> iterador2 = LlamarGlobales.getInstancia().getGestionMovimientos()
+					.traer_prestamos();
+
+			// Variable booleana que da la señal si un libro ya se ha prestado
+			boolean prestado = false;
+
+			// Se mira si el iterador de prestamos contiene elementos
+			while (iterador2.hasNext()) {
+
+				// Se asigna un objeto movimiento con el elemento iterado
+				Movimiento movimiento = iterador2.next();
+
+				if (movimiento.libroMovimiento.tituloLibro().equalsIgnoreCase(libro.tituloLibro())) {
+
+					prestado = true;
+
+					break;
+				}
+			}
+
+			if (!prestado) {
+
+				Carta carta = new Carta();
+
+				JPanel cartaAnadir = carta.crearCarta(libro, this.usuario);
+
+				add(cartaAnadir);
+
+			}
+
+		}
+
+	}
+
+	public void actualizarBusqueda(String busqueda) {
+		this.busqueda = busqueda;
+
+		removeAll();
+
+		ListIterator<Libro> iterador = libros.buscar_titulo(this.busqueda);
+
+		while (iterador.hasNext()) {
+
+			Libro libro = iterador.next();
+
+			ListIterator<Movimiento> iterador2 = LlamarGlobales.getInstancia().getGestionMovimientos()
+					.traer_prestamos();
+
+			boolean prestado = false;
+
+			while (iterador2.hasNext()) {
+
+				Movimiento movimiento = iterador2.next();
+
+				if (movimiento.libroMovimiento.tituloLibro().equalsIgnoreCase(libro.tituloLibro())) {
+
+					prestado = true;
+
+					break;
+				}
+			}
+
+			if (!prestado) {
+
+				Carta carta = new Carta();
+
+				JPanel cartaAnadir = carta.crearCarta(libro, this.usuario);
+
+				add(cartaAnadir);
+
+			}
+
+		}
+
+		revalidate();
+		repaint();
+		getParent().revalidate();
+	}
+
+	private String busqueda;
+
+	private GestionLibros libros;
+
+	private Usuario usuario;
+}

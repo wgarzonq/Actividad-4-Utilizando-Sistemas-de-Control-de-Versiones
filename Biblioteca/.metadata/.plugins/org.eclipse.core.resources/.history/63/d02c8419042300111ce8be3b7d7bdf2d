@@ -1,0 +1,1503 @@
+package interfaz;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.ListIterator;
+import java.util.Stack;
+
+import javax.imageio.ImageIO;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.DefaultCellEditor;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.JToolBar;
+import javax.swing.WindowConstants;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
+
+import biblioteca.com.clases.Libro;
+import biblioteca.com.clases.Movimiento;
+import biblioteca.com.clases.Usuario;
+import biblioteca.com.funciones.GestionLibros;
+import biblioteca.com.funciones.GestionMovimientos;
+import biblioteca.com.funciones.GestionUsuarios;
+import biblioteca.com.funciones.LlamarGlobales;
+
+// Frame Panel
+/*
+ * Frame donde gestionaran tanto para administradores como usuarios los movimientos
+ * de los textos
+ */
+public class Panel extends JFrame {
+
+	// Constructor de la clase que recibe como parametro un objeto GestionUsuarios
+	public Panel(GestionUsuarios usuario) {
+
+		// Configuración del Frame
+		Toolkit pantallaPrincipal = Toolkit.getDefaultToolkit();
+
+		Dimension tamanoPantalla = pantallaPrincipal.getScreenSize();
+
+		int alturaPantalla = tamanoPantalla.height;
+
+		int anchoPantalla = tamanoPantalla.width;
+
+		setSize(1000, 600);
+
+		setLocation(anchoPantalla / 8, alturaPantalla / 10);
+
+		setTitle("Biblioteca Jose María");
+
+		Image icono = pantallaPrincipal.getImage("src/img/icon/icono.png");
+
+		setIconImage(icono);
+
+		// Instancia de la clase para el fondo background de la ventana
+		FondoPanel fondo = new FondoPanel();
+
+		setContentPane(fondo);
+
+		// Configuración de las opciones de la barra de herramientas
+		// Ir a la ventana principal
+		Action accionInicio = new Acciones("Inicio", new ImageIcon("src/img/icon/inicio.png"), e -> {
+
+			// Direccionar a la ventana Principal
+			Principal vPrincipal = new Principal(usuario);
+
+			vPrincipal.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+			vPrincipal.setResizable(false);
+
+			vPrincipal.setVisible(true);
+
+			this.setVisible(false);
+
+		});
+
+		// Cerrar sesión de usuario
+		Action accionSalir = new Acciones("Cerrar Sesión", new ImageIcon("src/img/icon/salir.png"), e -> {
+
+			// Llama al método GestionUsuarios cerrar_sesion
+			usuario.cerrar_sesion();
+
+			Inicio vInicio = new Inicio();
+
+			vInicio.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+			vInicio.setResizable(false);
+
+			vInicio.setVisible(true);
+
+			this.setVisible(false);
+		});
+
+		// Llama al usuario logueado
+		Usuario usuarioLogueado = usuario.traer_logueado();
+
+		// Crea el menu desplegable como subtitulo el alias del usuario
+		JMenu menu = new JMenu(usuarioLogueado.aliasUsuario());
+
+		menu.setBackground(Color.black);
+
+		menu.setForeground(Color.white);
+
+		menu.setFont(new Font("Calibri", Font.PLAIN, 25));
+
+		menu.setOpaque(true);
+
+		// Añade las opciones a la lista desplegable
+		JMenuItem itemSalir = menu.add(accionSalir);
+
+		itemSalir.setBackground(Color.black);
+
+		itemSalir.setForeground(Color.white);
+
+		menu.getPopupMenu().setBackground(Color.black);
+
+		// Inserta la lista a una barra de menu
+		JMenuBar barra_menus = new JMenuBar();
+
+		barra_menus.setBackground(Color.black);
+
+		barra_menus.setForeground(Color.white);
+
+		barra_menus.add(menu);
+
+		// Incluye la barra de menu a la barra de herramientas
+		JToolBar barra = new JToolBar();
+
+		barra.setFloatable(false);
+
+		barra.setBackground(Color.black);
+
+		barra.add(Box.createHorizontalGlue());
+
+		// Botón para añadir la opción de inicio en la barra de herramientas aparte de
+		// la lista desplegable
+		JButton btnInicio = barra.add(accionInicio);
+
+		btnInicio.setBackground(Color.BLACK);
+
+		btnInicio.setForeground(Color.WHITE);
+
+		btnInicio.setBorderPainted(false);
+
+		barra.addSeparator();
+
+		barra.add(barra_menus);
+
+		barra.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+
+		// Añade la barra de herramientas al Frame
+		add(barra, BorderLayout.NORTH);
+
+		// Lamina del contenido de la ventana
+		LaminaPanel lamina = new LaminaPanel(usuarioLogueado, usuario, this);
+
+		add(lamina, BorderLayout.CENTER);
+
+		// Evitar la operación determinada al cerrar la ventana
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+
+		// Evento de ventana
+		this.addWindowListener(new WindowAdapter() {
+
+			// Método de evento por si se cierra la ventana
+			@Override
+			public void windowClosing(WindowEvent e) {
+
+				// Path de las imagenes subidas desde el aplicativo
+				String path = "src/img/img_temp/";
+
+				// Función para borrar todo el path suministrado al cerrar la ventana
+				borrarSubida(path);
+
+				// Liberar recursos
+				dispose();
+
+			}
+
+		});
+	}
+
+	// Clase privada para configurar las opciones de la barra de herramientas
+	private class Acciones extends AbstractAction {
+
+		// Contructor que recibe como parametros que deben llevar las funciones
+		public Acciones(String nombre, Icon icono, ActionListener evento) {
+
+			putValue(Action.NAME, nombre);
+
+			putValue(Action.SMALL_ICON, icono);
+
+			this.evento = evento;
+
+		}
+
+		// Evento de cada opción
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			// TODO Auto-generated method stub
+
+			evento.actionPerformed(e);
+
+		}
+
+		// Propiedad para almacenar el evento de cada opción
+		ActionListener evento;
+	}
+
+	// Función para borrar el Path suministrado de las imagenes subidas desde el
+	// aplicativo
+	public static void borrarSubida(String ruta) {
+
+		// Objeto file donde se asigna el Path suministrado
+		File carpeta = new File(ruta);
+
+		// Verificación donde evaluamos si el path existe y si es una carpeta
+		if (carpeta.exists() && carpeta.isDirectory()) {
+
+			// Array donde almacenamos la lista de archivos que contiene el directorio
+			File[] archivos = carpeta.listFiles();
+
+			// Verificación si el array esta vacio
+			if (archivos != null) {
+
+				// Itera el array con los archivos del fichero
+				for (File archivo : archivos) {
+
+					// Eliminar cada archivo
+					archivo.delete();
+
+				}
+
+			}
+
+		}
+
+	}
+
+}
+
+// Lamina que contiene el contenido del JFrame
+class LaminaPanel extends JPanel {
+
+	// Constructor de la lamina pidiendo como parametros: el usuario logueado,
+	// un objeto GestionUsuarios y el JFrame actual
+	public LaminaPanel(Usuario usuario, GestionUsuarios usuarios, Panel vAhora) {
+
+		// Configuración de la lamina
+		setOpaque(false);
+
+		setLayout(new BorderLayout());
+
+		// Título Central
+		JLabel titulo = new JLabel("Biblioteca Jose Mária");
+
+		titulo.setForeground(Color.white);
+
+		titulo.setFont(new Font("Calibri", Font.PLAIN, 60));
+
+		// Caja para el título central
+		Box caja1 = Box.createHorizontalBox();
+
+		caja1.add(Box.createHorizontalGlue());
+
+		caja1.add(titulo);
+
+		caja1.add(Box.createHorizontalGlue());
+
+		// Lamina que contiene todas las tablas de gestión
+		Tablas tablas = new Tablas(usuario, usuarios, vAhora);
+
+		// Scroll de la lamina de tablas
+		JScrollPane scroll = new JScrollPane(tablas, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+		scroll.getVerticalScrollBar().setUnitIncrement(16);
+
+		// Caja para la lamina de tablas
+		Box caja2 = Box.createHorizontalBox();
+
+		caja2.add(Box.createHorizontalGlue());
+
+		caja2.add(scroll);
+
+		caja2.add(Box.createHorizontalGlue());
+
+		// Contenedor donde se almacenan los items que componen la lamina
+		Box contenedor = Box.createVerticalBox();
+
+		contenedor.add(Box.createVerticalGlue());
+
+		contenedor.add(Box.createVerticalStrut(20));
+
+		contenedor.add(caja1);
+
+		contenedor.add(Box.createVerticalStrut(40));
+
+		contenedor.add(caja2);
+
+		contenedor.add(Box.createVerticalGlue());
+
+		// Añade el contenedor a la lamina actual
+		add(contenedor, BorderLayout.CENTER);
+	}
+}
+
+// Lamina que contendra las tablas de gestión de movimientos
+class Tablas extends JPanel {
+
+	// Constructor de la clase requiriendo los paramentros: usuario logueado,
+	// un objeto GestionUsuarios y el Frame actual
+	public Tablas(Usuario usuario, GestionUsuarios usuarios, Panel vAhora) {
+
+		// Configuración de la lamina
+		setLayout(new BorderLayout());
+
+		setBackground(Color.DARK_GRAY);
+
+		// Lamina de la tabla de los libros
+		TablaLibros tblLibros = new TablaLibros(usuarios, vAhora);
+
+		// Caja de la tabla libros
+		Box cajaLibros = Box.createVerticalBox();
+
+		cajaLibros.add(Box.createHorizontalGlue());
+
+		cajaLibros.add(tblLibros);
+
+		cajaLibros.add(Box.createHorizontalGlue());
+
+		// Lamina de la tabla de las solicitudes
+		TablaSolicitudes tblSolicitudes = new TablaSolicitudes(usuarios, vAhora);
+
+		// Caja de la tabla solicitudes
+		Box cajaSolicitudes = Box.createVerticalBox();
+
+		cajaSolicitudes.add(Box.createHorizontalGlue());
+
+		cajaSolicitudes.add(tblSolicitudes);
+
+		cajaSolicitudes.add(Box.createHorizontalGlue());
+
+		// Lamina de la tabla de los prestamos
+		TablaPrestamos tblPrestamos = new TablaPrestamos(usuario, usuarios, vAhora);
+
+		// Caja de la tabla prestamos
+		Box cajaPrestamos = Box.createVerticalBox();
+
+		cajaPrestamos.add(Box.createHorizontalGlue());
+
+		cajaPrestamos.add(tblPrestamos);
+
+		cajaPrestamos.add(Box.createHorizontalGlue());
+
+		// Lamina de la tabla de las devoluciones
+		TablaDevoluciones tblDevoluciones = new TablaDevoluciones(usuario);
+
+		// Caja de la tabla devoluciones
+		Box cajaDevoluciones = Box.createVerticalBox();
+
+		cajaDevoluciones.add(Box.createHorizontalGlue());
+
+		cajaDevoluciones.add(tblDevoluciones);
+
+		cajaDevoluciones.add(Box.createHorizontalGlue());
+
+		// Contenedor que contendra las tablas instanciadas
+		Box contenedor = Box.createVerticalBox();
+
+		contenedor.add(Box.createVerticalGlue());
+
+		// Verifica si el usuario es administrador
+		if (usuario.rolUsuario().equalsIgnoreCase("2"))
+			contenedor.add(cajaLibros);
+
+		// Verifica si el usuario es administrador
+		if (usuario.rolUsuario().equalsIgnoreCase("2"))
+			contenedor.add(Box.createVerticalStrut(20));
+
+		// Verifica si el usuario es administrador
+		if (usuario.rolUsuario().equalsIgnoreCase("2"))
+			contenedor.add(cajaSolicitudes);
+
+		// Verifica si el usuario es administrador
+		if (usuario.rolUsuario().equalsIgnoreCase("2"))
+			contenedor.add(Box.createVerticalStrut(20));
+
+		// Contenidos por defecto
+		contenedor.add(cajaPrestamos);
+
+		contenedor.add(Box.createVerticalStrut(20));
+
+		contenedor.add(cajaDevoluciones);
+
+		contenedor.add(Box.createVerticalStrut(20));
+
+		// Añadir el contenedor a la lamina
+		add(contenedor);
+	}
+}
+
+// Lamina de la tabla libros
+class TablaLibros extends JPanel {
+
+	// Constructor de la clase pidiendo como parametros un objeto GestionUsuarios y
+	// el Frame actual
+	public TablaLibros(GestionUsuarios usuarios, Panel vAhora) {
+
+		// Asigna los parametros a las variables de clase
+		this.usuarios = usuarios;
+
+		this.vAhora = vAhora;
+
+		// Configuración de la lamina
+		setLayout(new BorderLayout());
+
+		// Lamina de panel superior
+		JPanel panelSuperior = new JPanel(new BorderLayout());
+
+		panelSuperior.setBackground(Color.DARK_GRAY);
+
+		// Titulo de la lamina
+		JLabel subTitulo = new JLabel("Libros");
+
+		subTitulo.setFont(new Font("Calibri", Font.BOLD, 28));
+
+		subTitulo.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+
+		subTitulo.setForeground(Color.WHITE);
+
+		// Botón para añadir un nuevo libro
+		JButton anadirBoton = new JButton("Añadir Libro");
+
+		anadirBoton.setForeground(Color.white);
+
+		anadirBoton.setBackground(Color.gray);
+
+		anadirBoton.setFont(new Font("Calibri", Font.PLAIN, 16));
+
+		anadirBoton.setPreferredSize(new Dimension(160, 40));
+
+		anadirBoton.setBorder(BorderFactory.createEmptyBorder(5, 10, 0, 10));
+
+		anadirBoton.setFocusPainted(false);
+
+		// Evento para direccionar a la ventana de agregar
+		anadirBoton.addActionListener(e -> {
+
+			// Direccionar a la ventana de agregar libro
+			Agregar vAgregar = new Agregar(usuarios);
+
+			vAgregar.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+			vAgregar.setResizable(false);
+
+			vAgregar.setVisible(true);
+
+			vAhora.setVisible(false);
+
+		});
+
+		// Añade el título y el botón de agregar a la lamina del panel superior
+		panelSuperior.add(subTitulo, BorderLayout.WEST);
+
+		panelSuperior.add(anadirBoton, BorderLayout.EAST);
+
+		panelSuperior.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 10));
+
+		// Agrega el panel superior a la lamina principal
+		add(panelSuperior, BorderLayout.NORTH);
+
+		// Define las columnas de la tabla
+		String[] columnas = { "Imagen", "Título", "Editorial", "Autor", "No.Páginas", "Idioma" };
+
+		// Establece el modelo de la tabla
+		modelo = new DefaultTableModel(columnas, 0) {
+
+			// Si la celda es editable
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
+
+			// Configuración de las columnas
+			@Override
+			public Class<?> getColumnClass(int column) {
+
+				// Si la columna es la posición O
+				if (column == 0) {
+
+					// Retorna un objeto icono
+					return ImageIcon.class;
+				}
+
+				// Retorna a las demas un objeto Object
+				return Object.class;
+			}
+		};
+
+		// Instancia la tabla
+		tabla = new JTable(modelo);
+
+		tabla.getColumnModel().getColumn(0).setPreferredWidth(200);
+
+		tabla.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
+		// Centra el contenido de la tabla
+		DefaultTableCellRenderer centrado = new DefaultTableCellRenderer();
+
+		centrado.setHorizontalAlignment(JLabel.CENTER);
+
+		// Se confirma las configuraciones como debe ir cada columna de la tabla
+		for (int i = 1; i < tabla.getColumnCount(); i++) {
+
+			tabla.getColumnModel().getColumn(i).setPreferredWidth(200);
+
+			tabla.getColumnModel().getColumn(i).setCellRenderer(centrado);
+
+		}
+
+		// Configura el header de la tabla
+		DefaultTableCellRenderer headerRenderer = (DefaultTableCellRenderer) tabla.getTableHeader()
+				.getDefaultRenderer();
+
+		headerRenderer.setHorizontalAlignment(JLabel.CENTER);
+
+		// Configura la tabla
+		tabla.setRowHeight(150);
+
+		tabla.setGridColor(Color.BLACK);
+
+		tabla.setBackground(Color.WHITE);
+
+		tabla.setForeground(Color.BLACK);
+
+		tabla.setFont(new Font("Calibri", Font.BOLD, 14));
+
+		// la configuración del header se pasa al objeto JTableHeader
+		JTableHeader header = tabla.getTableHeader();
+
+		// Configuración del objeto JTableHeader
+		header.setBackground(Color.GRAY);
+
+		header.setForeground(Color.WHITE);
+
+		header.setFont(new Font("Calibri", Font.BOLD, 16));
+
+		// Scroll configurado para la tabla establecida
+		JScrollPane scroll = new JScrollPane(tabla);
+
+		scroll.setPreferredSize(new Dimension(900, 400));
+
+		scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+
+		scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+
+		// Se añade la tabla a la lamina
+		add(scroll, BorderLayout.CENTER);
+
+		// Llama los datos a imprimir
+		cargarDatos();
+
+	}
+
+	// Función para cargar los datos a imprimir en la tabla
+	private void cargarDatos() {
+
+		// Refresca la tabla
+		modelo.setRowCount(0);
+
+		// De la clase global LlamarGlobales se enfoca al objeto GestionLibros
+		GestionLibros libros = LlamarGlobales.getInstancia().getGestionLibros();
+
+		// Asigna al iterador, el iterador que contiene los libros almacenados en el
+		// aplicativo
+		ListIterator<Libro> iterador = libros.traer_libros();
+
+		// Revisa si el iterador contiene elementos
+		while (iterador.hasNext()) {
+
+			// Asigna el elemento iterado a un objeto Libro
+			Libro libro = iterador.next();
+
+			// Define el icono para la imagen
+			ImageIcon icono = null;
+
+			// Excepción de la lectura de la imagen
+			try {
+
+				// Lee la imagen de la propiedad del objeto Libro
+				Image img = ImageIO.read(new File(libro.imagenLibro()));
+
+				// Configura el path leido para asignarlo al icono
+				Image scaled = img.getScaledInstance(50, 100, Image.SCALE_SMOOTH);
+
+				icono = new ImageIcon(scaled);
+
+			} catch (IOException e) {
+
+				// El icono queda nulo si no se lee la imagen
+				icono = null;
+
+			}
+
+			// Establece mediante el objeto Libro de la iteración y el icono configurado el
+			// contenido
+			// impreso en la tabla
+			Object[] fila = { icono, libro.tituloLibro(), libro.editorialLibro(), libro.autorLibro(),
+					libro.nPaginasLibro(), libro.idiomaLibro() };
+
+			// Se añade el array de la información de la tabla a la tabla valga la
+			// redundancia
+			modelo.addRow(fila);
+
+		}
+
+	}
+
+	// Propiedades de la clase
+	private JTable tabla;
+
+	private DefaultTableModel modelo;
+
+	private GestionUsuarios usuarios;
+
+	private Panel vAhora;
+
+}
+
+// Lamina de la tabla de solicitudes
+class TablaSolicitudes extends JPanel {
+
+	// Constructor de la clase pidiendo como requerimientos un objeto
+	// GestionUsuarios y el frame actual
+	public TablaSolicitudes(GestionUsuarios usuarios, Panel vAhora) {
+
+		// Los parametros recibidos se asignan a variables de clase
+		this.usuarios = usuarios;
+
+		this.vAhora = vAhora;
+
+		// Configuración de la lamina
+		setLayout(new BorderLayout());
+
+		// Instancia y configuración de la lamina panelSuperior
+		JPanel panelSuperior = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 25));
+
+		panelSuperior.setBackground(Color.DARK_GRAY);
+
+		// Título de la tabla
+		JLabel subTitulo = new JLabel("Solicitudes");
+
+		subTitulo.setFont(new Font("Calibri", Font.BOLD, 28));
+
+		subTitulo.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+
+		subTitulo.setForeground(Color.WHITE);
+
+		panelSuperior.add(subTitulo);
+
+		// Añade la lamina superior a la lamina principal
+		add(panelSuperior, BorderLayout.NORTH);
+
+		// Define las columnas
+		String[] columnas = { "Imagen", "Título", "Editorial", "Autor", "Nombre Solicitante", "Documento Solicitante",
+				"", "" };
+
+		// Establece el modelo de la tabla
+		modelo = new DefaultTableModel(columnas, 0) {
+
+			// Si es editable
+			@Override
+			public boolean isCellEditable(int row, int column) {
+
+				// En este caso se edita la columna 6 y 7 donde se ubican los botones de acción
+				return column == 6 || column == 7;
+			}
+
+			// Objetos de las columnas
+			@Override
+			public Class<?> getColumnClass(int column) {
+
+				// La columna 0 devuelve un objeto tipo ImageIcon
+				if (column == 0) {
+					return ImageIcon.class;
+				}
+
+				// La demas columnas se devuelven de tipo Object
+				return Object.class;
+			}
+		};
+
+		// Instancia de la tabla recibiendo el modelo configurado
+		tabla = new JTable(modelo);
+
+		tabla.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
+		// Configuración para centrar el contenido de la tabla
+		DefaultTableCellRenderer centrado = new DefaultTableCellRenderer();
+
+		centrado.setHorizontalAlignment(JLabel.CENTER);
+
+		// Establece las configuraciones de diseño de la tabla
+		for (int i = 1; i < tabla.getColumnCount(); i++) {
+
+			tabla.getColumnModel().getColumn(i).setPreferredWidth(200);
+
+			tabla.getColumnModel().getColumn(i).setCellRenderer(centrado);
+
+		}
+
+		// Configuración del header de la tabla
+		DefaultTableCellRenderer headerRenderer = (DefaultTableCellRenderer) tabla.getTableHeader()
+				.getDefaultRenderer();
+
+		headerRenderer.setHorizontalAlignment(JLabel.CENTER);
+
+		// En las columnas de la imagen y los botones de acción se llaman propiedades
+		// que actuan unicamente en ellas
+		// en el caso de los botones se asocian a clases para poder ejecutar los eventos
+		// y renderizar en la tabla
+		// ya que no se hace directamente en un objeto JPanel
+		tabla.getColumnModel().getColumn(0).setPreferredWidth(200);
+
+		tabla.getColumnModel().getColumn(6).setCellRenderer(new ButtonRenderer());
+
+		tabla.getColumnModel().getColumn(6).setCellEditor(new ButtonEditor());
+
+		tabla.getColumnModel().getColumn(7).setCellRenderer(new ButtonRenderer());
+
+		tabla.getColumnModel().getColumn(7).setCellEditor(new ButtonEditor());
+
+		tabla.setRowHeight(150);
+
+		tabla.setGridColor(Color.BLACK);
+
+		tabla.setBackground(Color.WHITE);
+
+		tabla.setForeground(Color.BLACK);
+
+		tabla.setFont(new Font("Calibri", Font.BOLD, 14));
+
+		// Instancia de JTableHeader recibiendo la configuración del header
+		JTableHeader header = tabla.getTableHeader();
+
+		header.setBackground(Color.GRAY);
+
+		header.setForeground(Color.WHITE);
+
+		header.setFont(new Font("Calibri", Font.BOLD, 16));
+
+		// Scroll de la tabla
+		JScrollPane scroll = new JScrollPane(tabla);
+
+		scroll.setPreferredSize(new Dimension(900, 400));
+
+		scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+
+		scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+
+		// Añade la tabla a la lamina
+		add(scroll, BorderLayout.CENTER);
+
+		// Carga de datos para imprimir en la tabla
+		cargarDatos();
+
+	}
+
+	// Función para cargar los datos para imprimir en la tabla
+	private void cargarDatos() {
+
+		// Refresca la tabla
+		modelo.setRowCount(0);
+
+		// Llamada al objeto LlamarGlobales enfocado al objeto GestionMovimientos
+		GestionMovimientos solicitudes = LlamarGlobales.getInstancia().getGestionMovimientos();
+
+		// Iterador que almacena el iterador de las solicitudes del objeto global
+		Iterator<Movimiento> iterador = solicitudes.traer_solicitudes();
+
+		// Variable para saber el primer valor de la cola en el iterador
+		boolean esPrimero = true;
+
+		// Si el iterador contiene elementos
+		while (iterador.hasNext()) {
+
+			// Objeto Movimiento que recibe el elemento iterado
+			Movimiento solicitud = iterador.next();
+
+			// Objeto ImageIcon para almacenar la imagen del libro solicitado
+			ImageIcon icono = null;
+
+			// Excepción de lectura del path de la imagen del libro solicitado
+			try {
+
+				// Lectura del path de la imagen del libro solicitado
+				Image img = ImageIO.read(new File(solicitud.libroMovimiento.imagenLibro()));
+
+				// Configuración de la imagen leida para presentarla en la tabla
+				Image scaled = img.getScaledInstance(50, 100, Image.SCALE_SMOOTH);
+
+				icono = new ImageIcon(scaled);
+
+			} catch (IOException e) {
+
+				// Se asigna al objeto ImageIcon el valor nulo si falla la lectura de la
+				// propiedad
+				// de la imagen del libro del objeto Movimiento
+				icono = null;
+
+			}
+
+			// Objetos que representan los botones de acción
+			// porque solo el primer elemento iterado contendra estos botones, los demas no
+			Object aceptar = null;
+
+			Object rechazar = null;
+
+			// Si el elemento iterado es el primer registro de la cola
+			if (esPrimero) {
+
+				// Configuración del botón de aceptar
+				aceptar = botonTabla("Aceptar", e -> {
+
+					// Método de aceptar_solicitud de GestionMovimientos global
+					solicitudes.aceptar_solicitud(new JPanel());
+
+					// Direccionar a la ventana actual para ver reflejados los resultados
+					Panel marcoPanel = new Panel(usuarios);
+
+					marcoPanel.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+					marcoPanel.setResizable(false);
+
+					marcoPanel.setVisible(true);
+
+					vAhora.setVisible(false);
+
+				});
+
+				// Configuración del botón de rechazar
+				rechazar = botonTabla("Rechazar", e -> {
+
+					// Método de cancelar_solicitud de GestionMovimientos global
+					solicitudes.cancelar_solicitud(new JPanel());
+
+					// Direccionar a la ventana actual para ver reflejados los resultados
+					Panel marcoPanel = new Panel(usuarios);
+
+					marcoPanel.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+					marcoPanel.setResizable(false);
+
+					marcoPanel.setVisible(true);
+
+					vAhora.setVisible(false);
+
+				});
+
+				// Si ya se asignaron los botones al primer registro, la variable booleana es
+				// falsa
+				// para los demas
+				esPrimero = false;
+
+			}
+
+			// Tanto el icono, los botones de acción y las propiedades del objeto movimiento
+			// se establecen en un array Object
+			Object[] fila = { icono, solicitud.libroMovimiento.tituloLibro(),
+					solicitud.libroMovimiento.editorialLibro(), solicitud.libroMovimiento.autorLibro(),
+					solicitud.usuarioMovimiento.nombreUsuario(), solicitud.usuarioMovimiento.tDocumentoUsuario() + ": "
+							+ solicitud.usuarioMovimiento.nDocumentoUsuario(),
+					aceptar, rechazar };
+
+			// se añaden las filas de registros a la tabla
+			modelo.addRow(fila);
+
+		}
+
+	}
+
+	// función gráfica para los botones recibiendo su título y el evento
+	private JButton botonTabla(String titulo, ActionListener evento) {
+
+		// Instancia y configuración del botón
+		JButton boton = new JButton(titulo);
+
+		boton.setForeground(Color.white);
+
+		boton.setBackground(Color.gray);
+
+		boton.setFont(new Font("Calibri", Font.PLAIN, 16));
+
+		boton.setPreferredSize(new Dimension(160, 40));
+
+		boton.setFocusPainted(false);
+
+		// Asocia el evento recibido al botón
+		boton.addActionListener(evento);
+
+		// Devuelve el objeto JButton
+		return boton;
+	}
+
+	// Propiedades de la clase
+	private JTable tabla;
+
+	private DefaultTableModel modelo;
+
+	private GestionUsuarios usuarios;
+
+	private Panel vAhora;
+
+}
+
+// Lamina de tabla de prestamos
+class TablaPrestamos extends JPanel {
+
+	// Constructor de la clase que pide como requerimientos: el usuario logueado, un
+	// objeto
+	// GestionUsuarios y el Frame actual
+	public TablaPrestamos(Usuario usuario, GestionUsuarios usuarios, Panel vAhora) {
+
+		// Los parametros recibidos se asignan a las variables de clase
+		this.usuario = usuario;
+
+		this.usuarios = usuarios;
+
+		this.vAhora = vAhora;
+
+		// Configuración de la lamina
+		setLayout(new BorderLayout());
+
+		// Lamina del panel superior
+		JPanel panelSuperior = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 25));
+
+		panelSuperior.setBackground(Color.DARK_GRAY);
+
+		// Título de la tabla
+		JLabel subTitulo = new JLabel("Prestamos");
+
+		subTitulo.setFont(new Font("Calibri", Font.BOLD, 28));
+
+		subTitulo.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+
+		subTitulo.setForeground(Color.WHITE);
+
+		// Añade el título de la tabla a la lamina de panelSuperior
+		panelSuperior.add(subTitulo);
+
+		// Agrega el panelSuperior a la lamina principal
+		add(panelSuperior, BorderLayout.NORTH);
+
+		// Definimos las columnas de la tabla
+		String[] columnas = { "Imagen", "Título", "Editorial", "Autor", "Nombre Solicitante", "Documento Solicitante",
+				"" };
+
+		// Configuración del modelo de la tabla
+		modelo = new DefaultTableModel(columnas, 0) {
+
+			// Si la celda o columna es editable
+			@Override
+			public boolean isCellEditable(int row, int column) {
+
+				// La columna 6 es editable
+				return column == 6;
+			}
+
+			// Objeto que se define en cada columna
+			@Override
+			public Class<?> getColumnClass(int column) {
+
+				// Si es 0 devuelve un objeto ImageIcon
+				if (column == 0) {
+					return ImageIcon.class;
+				}
+
+				// Las demas columnas devuelve un objeto tipo Object
+				return Object.class;
+			}
+		};
+
+		// Instancia la tabla recibiendo el modelo configurado
+		tabla = new JTable(modelo);
+
+		tabla.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
+		// Configuración del centrado de los elementos de la tabla
+		DefaultTableCellRenderer centrado = new DefaultTableCellRenderer();
+
+		centrado.setHorizontalAlignment(JLabel.CENTER);
+
+		// Establecemos algunas configuraciones en la tabla
+		for (int i = 1; i < tabla.getColumnCount(); i++) {
+
+			tabla.getColumnModel().getColumn(i).setPreferredWidth(200);
+
+			tabla.getColumnModel().getColumn(i).setCellRenderer(centrado);
+
+		}
+
+		// Renderización del header de la tabla
+		DefaultTableCellRenderer headerRenderer = (DefaultTableCellRenderer) tabla.getTableHeader()
+				.getDefaultRenderer();
+
+		headerRenderer.setHorizontalAlignment(JLabel.CENTER);
+
+		// Establecemos configuraciones en las columnas de la imagen del libro prestado
+		// y el botón de acción
+		// en cuanto al botón de acción se relaciona con las clases para poder
+		// renderizar el botón y que me garantice la escucha del evento
+		tabla.getColumnModel().getColumn(0).setPreferredWidth(200);
+
+		tabla.getColumnModel().getColumn(6).setCellRenderer(new ButtonRenderer());
+
+		tabla.getColumnModel().getColumn(6).setCellEditor(new ButtonEditor());
+
+		tabla.setRowHeight(150);
+
+		tabla.setGridColor(Color.BLACK);
+
+		tabla.setBackground(Color.WHITE);
+
+		tabla.setForeground(Color.BLACK);
+
+		tabla.setFont(new Font("Calibri", Font.BOLD, 14));
+
+		// Instancia de JTableHeader con la configuración de la renderización del header
+		JTableHeader header = tabla.getTableHeader();
+
+		header.setBackground(Color.GRAY);
+
+		header.setForeground(Color.WHITE);
+
+		header.setFont(new Font("Calibri", Font.BOLD, 16));
+
+		// Scroll de la tabla
+		JScrollPane scroll = new JScrollPane(tabla);
+
+		scroll.setPreferredSize(new Dimension(900, 400));
+
+		scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+
+		scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+
+		// Añadir la tabla a la lamina principal
+		add(scroll, BorderLayout.CENTER);
+
+		// Cargar los datos a imprimir en la tabla
+		cargarDatos();
+
+	}
+
+	// Función para cargar los datos impresos en la tabla
+	private void cargarDatos() {
+
+		// Refrescar la tabla
+		modelo.setRowCount(0);
+
+		// Asignación de la Llamada al objeto LlamarGlobales enfocado al objeto GestionMovimientos
+		GestionMovimientos prestamos = LlamarGlobales.getInstancia().getGestionMovimientos();
+
+		// Iterador que recibe el iterador con los prestamos
+		ListIterator<Movimiento> iterador = prestamos.traer_prestamos();
+
+		// Objeto ImageIcon para la imagen del libro prestado
+		ImageIcon icono = null;
+
+		// Objeto boleano para saber si el usuario logueado es administrador
+		boolean isAdmin = usuario.rolUsuario().equalsIgnoreCase("2");
+
+		// Si el iterador contiene elementos
+		while (iterador.hasNext()) {
+
+			// Asigna a un objeto Movimiento el elemento iterado
+			Movimiento prestamo = iterador.next();
+
+			// Verificación si el elemento iterado no es del usuario logueado y si el usuario logueado
+			// no es administrador
+			if (!prestamo.usuarioMovimiento.idUsuario().equals(usuario.idUsuario()) && !isAdmin) {
+				
+				// Omite el elemento iterado si se cumple la condición
+				continue;
+			}
+
+			
+			// Excepción de la lectura de la imagen
+			try {
+
+				// Lectura del path de la imagen del libro prestado
+				Image img = ImageIO.read(new File(prestamo.libroMovimiento.imagenLibro()));
+				
+				// Configuración de la imagen leida para visualizar en la tabla
+				Image scaled = img.getScaledInstance(50, 100, Image.SCALE_SMOOTH);
+
+				icono = new ImageIcon(scaled);
+
+			} catch (IOException e) {
+
+				// Si no se puede leer la imagen
+				icono = null;
+
+			}
+
+			// Objeto que corresponde al botón de devolver el texto
+			Object boton = null;
+
+			// Si el usuario logueado es administrador
+			if (isAdmin) {
+				
+				// Asigna al objeto Object un botón para realizar la acción de devolución
+				boton = botonTabla("Devolver", e -> {
+
+					// Método devolver_libro de la clase global pasandole el objeto Movimiento
+					// relacionado con el prestamo iterado
+					prestamos.devolver_libro(new JPanel(), prestamo);
+
+					// Direccionar a la ventana actual para ver reflejados los resultados
+					Panel marcoPanel = new Panel(usuarios);
+
+					marcoPanel.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+					marcoPanel.setResizable(false);
+
+					marcoPanel.setVisible(true);
+
+					vAhora.setVisible(false);
+
+				});
+			}
+
+			// Se establece en un array: la imagen del libro prestado, los elementos iterados de objeto Movimiento
+			// relacionados al prestamo y el objeto Object del botón de devolución si el usuario logueado es administrador
+			Object[] fila = { icono, prestamo.libroMovimiento.tituloLibro(), prestamo.libroMovimiento.editorialLibro(),
+					prestamo.libroMovimiento.autorLibro(), prestamo.usuarioMovimiento.nombreUsuario(),
+					prestamo.usuarioMovimiento.tDocumentoUsuario() + ": "
+							+ prestamo.usuarioMovimiento.nDocumentoUsuario(),
+					boton };
+
+			// Añade el array de las filas a la tabla
+			modelo.addRow(fila);
+		}
+
+	}
+
+	// función gráfica para los botones recibiendo su título y el evento
+	private JButton botonTabla(String titulo, ActionListener evento) {
+		
+		// Instancia y configuración del botón
+		JButton boton = new JButton(titulo);
+
+		boton.setForeground(Color.white);
+
+		boton.setBackground(Color.gray);
+
+		boton.setFont(new Font("Calibri", Font.PLAIN, 16));
+
+		boton.setPreferredSize(new Dimension(160, 40));
+
+		boton.setFocusPainted(false);
+
+		// Asocia el evento recibido al botón
+		boton.addActionListener(evento);
+
+		// Devuelve el objeto JButton
+		return boton;
+	}
+
+	// Propiedades de la clase
+	private JTable tabla;
+
+	private DefaultTableModel modelo;
+
+	private Usuario usuario;
+
+	private GestionUsuarios usuarios;
+
+	private Panel vAhora;
+
+}
+
+//Lamina de tabla de devoluciones
+class TablaDevoluciones extends JPanel {
+
+	// Constructor de la clase pidiendo el usuario logueado
+	public TablaDevoluciones(Usuario usuario) {
+
+		// Asignación a la variable de clase del parametro recibido
+		this.usuario = usuario;
+
+		
+		// Configuración de la lamina
+		setLayout(new BorderLayout());
+
+		
+		// Lamina del panel superior
+		JPanel panelSuperior = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 25));
+
+		panelSuperior.setBackground(Color.DARK_GRAY);
+		
+		
+		// Título de la tabla
+		JLabel subTitulo = new JLabel("Devoluciones");
+
+		subTitulo.setFont(new Font("Calibri", Font.BOLD, 28));
+
+		subTitulo.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+
+		subTitulo.setForeground(Color.WHITE);
+
+		
+		// Añade el título a la tabla superior
+		panelSuperior.add(subTitulo);
+
+		
+		// Agrega el panel superior a la lamina principal
+		add(panelSuperior, BorderLayout.NORTH);
+
+		
+		// Definición de las columnas de la tabla
+		String[] columnas = { "Imagen", "Título", "Editorial", "Autor", "Nombre Solicitante", "Documento Solicitante" };
+
+		
+		// Modelo de configuración de la tabla
+		modelo = new DefaultTableModel(columnas, 0) {
+
+			// Si alguna celda es editable
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				
+				// Ninguna celda se edita
+				return false;
+				
+			}
+
+			// Devuelve el tipo de objeto que sera cada celda
+			@Override
+			public Class<?> getColumnClass(int column) {
+				
+				// La primera celda devuelve que es un objeto ImageIcon
+				if (column == 0) {
+					return ImageIcon.class;
+				}
+
+				// Las demas seran de tipo Object
+				return Object.class;
+			}
+		};
+
+		// Instancia la tabla recibiendo el modelo configurado
+		tabla = new JTable(modelo);
+
+		tabla.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
+		
+		// Configuración del centrado de los elementos de la tabla
+		DefaultTableCellRenderer centrado = new DefaultTableCellRenderer();
+
+		centrado.setHorizontalAlignment(JLabel.CENTER);
+
+		// Se establece como deben ir configuradas gráficamente las celdas de la tabla
+		for (int i = 1; i < tabla.getColumnCount(); i++) {
+
+			tabla.getColumnModel().getColumn(i).setPreferredWidth(200);
+
+			tabla.getColumnModel().getColumn(i).setCellRenderer(centrado);
+
+		}
+
+		
+		// Configuración de la renderización del encabezado de la tabla
+		DefaultTableCellRenderer headerRenderer = (DefaultTableCellRenderer) tabla.getTableHeader()
+				.getDefaultRenderer();
+
+		headerRenderer.setHorizontalAlignment(JLabel.CENTER);
+
+		
+		// Configuraciones adicionales de la tabla
+		tabla.getColumnModel().getColumn(0).setPreferredWidth(200);
+
+		tabla.setRowHeight(150);
+
+		tabla.setGridColor(Color.BLACK);
+
+		tabla.setBackground(Color.WHITE);
+
+		tabla.setForeground(Color.BLACK);
+
+		tabla.setFont(new Font("Calibri", Font.BOLD, 14));
+		
+		
+		// Instancia del objeto JTableHeader recibiendo la configuración de la renderización
+		// del encabezado de la tabla
+		JTableHeader header = tabla.getTableHeader();
+
+		header.setBackground(Color.GRAY);
+
+		header.setForeground(Color.WHITE);
+
+		header.setFont(new Font("Calibri", Font.BOLD, 16));
+		
+
+		// Scroll de la tabla
+		JScrollPane scroll = new JScrollPane(tabla);
+
+		scroll.setPreferredSize(new Dimension(900, 400));
+
+		scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+
+		scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+
+		
+		// Añade la tabla a la lamina principal
+		add(scroll, BorderLayout.CENTER);
+
+		
+		// Carga los datos para imprimir en la tabla
+		cargarDatos();
+
+	}
+
+	
+	// Función para cargar los datos a imprimir en la tabla
+	private void cargarDatos() {
+
+		// Refresca la tabla
+		modelo.setRowCount(0);
+
+		// Llamada a la clase global LlamarGlobales enfocada al objeto GestionMovimientos
+		GestionMovimientos devoluciones = LlamarGlobales.getInstancia().getGestionMovimientos();
+
+		// Iterador para recibir el iterador con las devoluciones
+		ListIterator<Movimiento> iterador = devoluciones.traer_devoluciones();
+
+		// Si el iterador tiene elementos
+		while (iterador.hasNext()) {
+
+			// Objeto Movimiento que recibe el elemento iterado
+			Movimiento devolucion = iterador.next();
+
+			ImageIcon icono = null;
+
+			if (!devolucion.usuarioMovimiento.idUsuario().equals(usuario.idUsuario())
+					&& !usuario.rolUsuario().equalsIgnoreCase("2")) {
+				continue;
+			}
+
+			try {
+
+				Image img = ImageIO.read(new File(devolucion.libroMovimiento.imagenLibro()));
+
+				Image scaled = img.getScaledInstance(50, 100, Image.SCALE_SMOOTH);
+
+				icono = new ImageIcon(scaled);
+
+			} catch (IOException e) {
+
+				icono = null;
+
+			}
+
+			Object[] fila = { icono, devolucion.libroMovimiento.tituloLibro(),
+					devolucion.libroMovimiento.editorialLibro(), devolucion.libroMovimiento.autorLibro(),
+					devolucion.usuarioMovimiento.nombreUsuario(), devolucion.usuarioMovimiento.tDocumentoUsuario()
+							+ ": " + devolucion.usuarioMovimiento.nDocumentoUsuario() };
+
+			modelo.addRow(fila);
+
+		}
+
+	}
+
+	private JTable tabla;
+
+	private DefaultTableModel modelo;
+
+	private Usuario usuario;
+
+}
+
+class ButtonRenderer extends JButton implements TableCellRenderer {
+	public ButtonRenderer() {
+		setOpaque(true);
+		setFocusPainted(false);
+	}
+
+	@Override
+	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+			int row, int column) {
+
+		if (value instanceof JButton) {
+			JButton boton = (JButton) value;
+
+			setText(boton.getText());
+
+			setBackground(boton.getBackground());
+
+			setForeground(boton.getForeground());
+
+			setFont(boton.getFont());
+
+		} else {
+			setText((value == null) ? "" : value.toString());
+		}
+
+		return this;
+
+	}
+}
+
+class ButtonEditor extends DefaultCellEditor {
+
+	private JButton boton;
+
+	public ButtonEditor() {
+
+		super(new JTextField());
+
+		setClickCountToStart(1);
+
+		boton = new JButton();
+
+		boton.setFocusPainted(false);
+
+		boton.setForeground(Color.white);
+
+		boton.setBackground(Color.gray);
+
+	}
+
+	@Override
+	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+
+		if (value instanceof JButton) {
+			JButton original = (JButton) value;
+
+			boton.setText(original.getText());
+
+			for (ActionListener al : boton.getActionListeners()) {
+
+				boton.removeActionListener(al);
+
+			}
+
+			for (ActionListener al : original.getActionListeners()) {
+
+				boton.addActionListener(e -> {
+
+					al.actionPerformed(e);
+
+					fireEditingStopped();
+
+				});
+
+			}
+		} else {
+
+			boton.setText("");
+
+			boton.setEnabled(false);
+		}
+
+		return boton;
+
+	}
+
+	@Override
+	public Object getCellEditorValue() {
+
+		return boton;
+
+	}
+}

@@ -1,0 +1,212 @@
+package interfaz;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+import biblioteca.com.clases.Libro;
+import biblioteca.com.clases.Usuario;
+import biblioteca.com.funciones.GestionMovimientos;
+import biblioteca.com.funciones.LlamarGlobales;
+
+// Clase Carta
+public class Carta {
+
+	// Función JPanel que pide como parametros el objeto Libro para la impresión de
+	// la información en la carta
+	// y el usuario logueado para realizar la solicitud de prestamo
+	public JPanel crearCarta(Libro libro, Usuario usuario) {
+
+		// Asignan los parametros a las propiedades de clase
+		this.libro = libro;
+
+		this.usuario = usuario;
+
+		// Instancia un objeto JPanel
+		JPanel carta = new JPanel();
+
+		// Configuración del objeto JPanel
+		carta.setPreferredSize(new Dimension(200, 300));
+
+		carta.setBackground(Color.BLACK);
+
+		carta.setBorder(BorderFactory.createLineBorder(Color.white, 2));
+
+		carta.setLayout(new BorderLayout(5, 5));
+
+		// Imagen de la carta
+		JLabel imagenLabel = new JLabel();
+
+		imagenLabel.setPreferredSize(new Dimension(200, 150));
+
+		imagenLabel.setHorizontalAlignment(JLabel.CENTER);
+
+		// Mapa para poder renderizar la imagen en un objeto ImageIcon, de paso verifica
+		// si esta ya contiene una clave
+		// en el mismo o si no le asigna una clave nula
+		Map<String, ImageIcon> cacheImagenes = new HashMap<>();
+
+		ImageIcon icon = cacheImagenes.get(libro.imagenLibro());
+
+		// Excepción para renderizar las imagenes en el aplicativo
+		try {
+
+			// Si el mapeo realizado fue nulo
+			if (icon == null) {
+
+				// Configura la imagen desde el path recibido del objeto Libro
+				imagen = ImageIO.read(new File(libro.imagenLibro()));
+
+				scaled = imagen.getScaledInstance(200, 150, Image.SCALE_SMOOTH);
+
+				icon = new ImageIcon(scaled);
+
+				// Añade al mapa el path configurado
+				cacheImagenes.put(libro.imagenLibro(), icon);
+			}
+
+			// Renderiza la visualización de la imagen
+			imagenLabel.setIcon(icon);
+
+		} catch (IOException e) {
+
+			// Imprime la excepción obtenida
+			e.printStackTrace();
+
+			// Visualización de la imagen en caso que ocurra la excepción
+			imagenLabel.setText("Sin Imagen");
+
+			imagenLabel.setForeground(Color.WHITE);
+
+			imagenLabel.setOpaque(true);
+
+			imagenLabel.setBackground(Color.DARK_GRAY);
+
+		}
+
+		// Añade el visualizador de la imagen a la lamina
+		carta.add(imagenLabel, BorderLayout.NORTH);
+
+		// Objeto JPanel para la información de texto
+		JPanel info = new JPanel();
+
+		info.setLayout(new BoxLayout(info, BoxLayout.Y_AXIS));
+
+		info.setBackground(Color.BLACK);
+
+		info.setBorder(BorderFactory.createEmptyBorder(25, 10, 10, 10));
+
+		// Título del libro
+		JLabel lblTitulo = new JLabel("Libro: " + libro.tituloLibro());
+
+		lblTitulo.setForeground(Color.white);
+
+		lblTitulo.setFont(new Font("Calibri", Font.BOLD, 16));
+
+		// Autor
+		JLabel lblAutor = new JLabel("Autor: " + libro.autorLibro());
+
+		lblAutor.setForeground(Color.white);
+
+		lblAutor.setFont(new Font("Calibri", Font.PLAIN, 14));
+
+		// Editorial
+		JLabel lblEditorial = new JLabel("Editorial: " + libro.editorialLibro());
+
+		lblEditorial.setForeground(Color.white);
+
+		lblEditorial.setFont(new Font("Calibri", Font.PLAIN, 14));
+
+		// Idioma
+		JLabel lblIdioma = new JLabel("Idioma: " + libro.idiomaLibro());
+
+		lblIdioma.setForeground(Color.white);
+
+		lblIdioma.setFont(new Font("Calibri", Font.PLAIN, 14));
+
+		// Añade a la lamina info los enunciados configurados anteriormente
+		info.add(lblTitulo);
+
+		info.add(lblAutor);
+
+		info.add(lblEditorial);
+
+		info.add(lblIdioma);
+
+		// Añade a la lamina carta la lamina info
+		carta.add(info, BorderLayout.CENTER);
+
+		// Botón para solicitar el prestamo del libro
+		JButton botonPrestar = new JButton("Solicitar Prestamo");
+
+		botonPrestar.setBackground(Color.GRAY);
+
+		botonPrestar.setForeground(Color.WHITE);
+
+		botonPrestar.setFocusPainted(false);
+
+		botonPrestar.setBorder(BorderFactory.createLineBorder(Color.WHITE));
+
+		botonPrestar.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+
+		botonPrestar.setFont(new Font("Calibri", Font.PLAIN, 20));
+
+		botonPrestar.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		// Instancia el evento Accion_Solicitud
+		Accion_Solicitud evento = new Accion_Solicitud();
+
+		// Relaciona el botón con el evento instanciado
+		botonPrestar.addActionListener(evento);
+
+		// Agrega el botón a la lamina carta
+		carta.add(botonPrestar, BorderLayout.SOUTH);
+
+		// Retorna la lamina carta
+		return carta;
+	}
+
+	// Evento para crear la solicitud de prestamo
+	private class Accion_Solicitud implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+
+			// Crea la solicitud de prestamo mediante la clase LlamarGlobales orientada al
+			// objeto GestionMovimientos, usando como parametros el usuario logueado, el
+			// libro a solicitar y
+			// un objeto JPanel para mostrar la ventana de alerta avisando el exito del
+			// procedimiento
+			LlamarGlobales.getInstancia().getGestionMovimientos().crear_solicitud(usuario, libro, new JPanel());
+
+		}
+
+	}
+
+	// Definen las propiedades de clase
+	private Image imagen;
+
+	private Image scaled;
+
+	private Libro libro;
+
+	private Usuario usuario;
+
+}

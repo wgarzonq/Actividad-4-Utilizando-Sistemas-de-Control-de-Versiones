@@ -1,0 +1,290 @@
+package interfaz;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.WindowConstants;
+
+import biblioteca.com.funciones.GestionUsuarios;
+
+// Frame Inicio
+/*
+ * Primer frame que va a ver el usuario al ejecutar el aplicativo
+ * donde esta el login para que con un usuario de prueba se pueda acceder
+ * a las funcionalidades de gestion de biblioteca
+ */
+public class Inicio extends JFrame {
+
+	public Inicio() {
+
+		// Configuración del JFrame
+		Toolkit pantallaInicio = Toolkit.getDefaultToolkit();
+
+		Dimension tamanoPantalla = pantallaInicio.getScreenSize();
+
+		int alturaPantalla = tamanoPantalla.height;
+
+		int anchoPantalla = tamanoPantalla.width;
+
+		setSize(1000, 600);
+
+		setLocation(anchoPantalla / 8, alturaPantalla / 10);
+
+		setTitle("Biblioteca Jose María");
+
+		Image icono = pantallaInicio.getImage("src/img/icon/icono.png");
+
+		setIconImage(icono);
+
+		// Instancia del fondo del background del frame
+		FondoPanel fondo = new FondoPanel();
+		
+		setContentPane(fondo);
+
+		// Instancia de la lamina
+		LaminaInicio lamina = new LaminaInicio(this);
+
+		// Inserta la lamina al frame
+		add(lamina, BorderLayout.CENTER);
+		
+		// Evitar la operación determinada al cerrar la ventana
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		
+		// Evento de ventana
+		this.addWindowListener(new WindowAdapter() {
+			
+			// Método de evento por si se cierra la ventana
+			@Override
+			public void windowClosing(WindowEvent e) {
+				
+				// Path de las imagenes subidas desde el aplicativo
+				String path = "src/img/img_temp/";
+				
+				// Función para borrar todo el path suministrado al cerrar la ventana
+				borrarSubida(path);
+				
+				// Liberar recursos
+				dispose();
+				
+			}
+			
+		});
+
+	}
+	
+	// Función para borrar el Path suministrado de las imagenes subidas desde el
+	// aplicativo
+	public static void borrarSubida(String ruta) {
+		
+		// Objeto file donde se asigna el Path suministrado
+		File carpeta = new File(ruta);
+		
+		// Verificación donde evaluamos si el path existe y si es una carpeta
+		if (carpeta.exists() && carpeta.isDirectory()) {
+			
+			// Array donde almacenamos la lista de archivos que contiene el directorio
+			File[] archivos = carpeta.listFiles();
+			
+			if (archivos != null) {
+				
+				for (File archivo : archivos) {
+					
+					archivo.delete();
+					
+				}
+				
+			}
+			
+		}
+		
+	}
+
+}
+
+class LaminaInicio extends JPanel {
+
+	public LaminaInicio(Inicio vInicio) {
+		
+		this.vInicio = vInicio;
+
+		setOpaque(false);
+
+		setLayout(new BorderLayout());
+
+		JLabel titulo = new JLabel("Biblioteca Jose Mária");
+
+		titulo.setForeground(Color.white);
+
+		titulo.setFont(new Font("Calibri", Font.PLAIN, 60));
+		
+		titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		Box caja1 = Box.createHorizontalBox();
+		
+		caja1.add(Box.createHorizontalGlue());
+
+		caja1.add(titulo);
+		
+		caja1.add(Box.createHorizontalGlue());
+		
+
+		JLabel avatar = new JLabel("Usuario:");
+
+		avatar.setForeground(Color.white);
+
+		avatar.setFont(new Font("Calibri", Font.PLAIN, 30));
+		
+		avatar.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		avatarCampo = new JTextField(30);
+		
+		avatarCampo.setFont(new Font("Calibri", Font.PLAIN, 30));
+
+		avatarCampo.setMaximumSize(avatarCampo.getPreferredSize());
+		
+		avatarCampo.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		Box caja2 = Box.createVerticalBox();
+		
+		caja2.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		caja2.add(avatar);
+		
+		caja2.add(Box.createVerticalStrut(10));
+		
+		caja2.add(avatarCampo);
+		
+		
+		JLabel contrasena = new JLabel("Contraseña:");
+
+		contrasena.setForeground(Color.white);
+
+		contrasena.setFont(new Font("Calibri", Font.PLAIN, 30));
+		
+		contrasena.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		contrasenaCampo = new JPasswordField(30);
+		
+		contrasenaCampo.setFont(new Font("Calibri", Font.PLAIN, 30));
+
+		contrasenaCampo.setMaximumSize(avatarCampo.getPreferredSize());
+		
+		contrasenaCampo.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		Box caja3 = Box.createVerticalBox();
+		
+		caja3.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		caja3.add(contrasena);
+		
+		caja3.add(Box.createVerticalStrut(10));
+		
+		caja3.add(contrasenaCampo);
+		
+		
+		JButton sesionBoton =new JButton("Iniciar Sesión");
+		
+		sesionBoton.setForeground(Color.white);
+		
+		sesionBoton.setBackground(Color.gray);
+
+		sesionBoton.setFont(new Font("Calibri", Font.PLAIN, 30));
+		
+		sesionBoton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		
+		sesionBoton.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+		
+		Accion_Inicio evento = new Accion_Inicio();
+		
+		sesionBoton.addActionListener(evento);
+		
+		Box caja4 = Box.createVerticalBox();
+		
+		caja4.setAlignmentX(Component.CENTER_ALIGNMENT);
+		
+		caja4.add(sesionBoton);
+		
+
+		Box contenedor = Box.createVerticalBox();
+		
+		contenedor.add(Box.createVerticalGlue());
+
+		contenedor.add(caja1);
+		
+		contenedor.add(Box.createVerticalStrut(40));
+
+		contenedor.add(caja2);
+		
+		contenedor.add(Box.createVerticalStrut(30));
+		
+		contenedor.add(caja3);
+		
+		contenedor.add(Box.createVerticalStrut(40));
+		
+		contenedor.add(caja4);
+		
+		contenedor.add(Box.createVerticalGlue());
+
+		add(contenedor, BorderLayout.CENTER);
+
+	}
+	
+	private class Accion_Inicio implements ActionListener{
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			// TODO Auto-generated method stub
+			
+			GestionUsuarios usuarios = new GestionUsuarios();
+			
+			boolean autenticacion = usuarios.inicio_sesion(avatarCampo.getText(), contrasenaCampo.getPassword());
+			
+			avatarCampo.setText("");
+			
+			contrasenaCampo.setText("");
+			
+			if(autenticacion) {
+				Principal marcoPrincipal = new Principal(usuarios);
+
+				marcoPrincipal.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+				marcoPrincipal.setResizable(false);
+
+				marcoPrincipal.setVisible(true);
+				
+				vInicio.setVisible(false);
+				
+			} else {
+				JOptionPane.showMessageDialog(LaminaInicio.this, "Por favor, intentelo de nuevo", "Credenciales Incorrectas", 2);
+			}
+			
+		}
+		
+	}
+	
+	private JTextField avatarCampo;
+	
+	private JPasswordField contrasenaCampo;
+	
+	private Inicio vInicio;
+
+}

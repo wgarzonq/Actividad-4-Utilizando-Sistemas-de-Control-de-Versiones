@@ -1,0 +1,763 @@
+package interfaz;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.ListIterator;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.JToolBar;
+import javax.swing.WindowConstants;
+
+import biblioteca.com.clases.Libro;
+import biblioteca.com.clases.Usuario;
+import biblioteca.com.funciones.GestionLibros;
+import biblioteca.com.funciones.GestionUsuarios;
+import biblioteca.com.funciones.LlamarGlobales;
+
+// Frame del formulario de agregar libro
+public class Agregar extends JFrame {
+
+	// Constructor del Frame que recibe un objeto GestionUsuarios
+	public Agregar(GestionUsuarios usuario) {
+
+		// Configuración del Frame
+		Toolkit pantallaPrincipal = Toolkit.getDefaultToolkit();
+
+		Dimension tamanoPantalla = pantallaPrincipal.getScreenSize();
+
+		int alturaPantalla = tamanoPantalla.height;
+
+		int anchoPantalla = tamanoPantalla.width;
+
+		setSize(1000, 600);
+
+		setLocation(anchoPantalla / 8, alturaPantalla / 10);
+
+		setTitle("Biblioteca Jose María");
+
+		Image icono = pantallaPrincipal.getImage("src/img/icon/icono.png");
+
+		setIconImage(icono);
+		
+		// Instancia de la clase para el fondo background de la ventana
+		FondoPanel fondo = new FondoPanel();
+		
+		setContentPane(fondo);
+		
+		
+		// Configuración de las opciones de la barra de herramientas
+		// Ir al Panel
+		Action accionPerfil = new Acciones("Perfil", new ImageIcon("src/img/icon/usuario.png"), e -> {
+
+			// Direccionar a la ventana Panel
+			Panel marcoPanel = new Panel(usuario);
+
+			marcoPanel.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+			marcoPanel.setResizable(false);
+
+			marcoPanel.setVisible(true);
+
+			this.setVisible(false);
+
+		});
+		
+		// Cerrar sesión de usuario
+		Action accionSalir = new Acciones("Cerrar Sesión", new ImageIcon("src/img/icon/salir.png"), e -> {
+
+			// Se llama al método GestionUsuarios cerrar_sesion
+			usuario.cerrar_sesion();
+
+			// Direcciona a la ventana Inicio
+			Inicio vInicio = new Inicio();
+
+			vInicio.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+			vInicio.setResizable(false);
+
+			vInicio.setVisible(true);
+
+			this.setVisible(false);
+
+		});
+
+		// Se llama al usuario logueado
+		Usuario usuarioLogueado = usuario.traer_logueado();
+
+		// Se crea el menu desplegable como subtitulo el alias del usuario
+		JMenu menu = new JMenu(usuarioLogueado.aliasUsuario());
+
+		menu.setBackground(Color.black);
+
+		menu.setForeground(Color.white);
+
+		menu.setFont(new Font("Calibri", Font.PLAIN, 25));
+
+		menu.setOpaque(true);
+		
+		// Se añade las opciones a la lista desplegable
+		JMenuItem itemPerfil = menu.add(accionPerfil);
+
+		JMenuItem itemSalir = menu.add(accionSalir);
+
+		itemPerfil.setBackground(Color.black);
+
+		itemPerfil.setForeground(Color.white);
+
+		itemSalir.setBackground(Color.black);
+
+		itemSalir.setForeground(Color.white);
+
+		menu.getPopupMenu().setBackground(Color.black);
+		
+		// Se añade la lista a una barra de menu
+		JMenuBar barra_menus = new JMenuBar();
+
+		barra_menus.setBackground(Color.black);
+
+		barra_menus.setForeground(Color.white);
+
+		barra_menus.add(menu);
+
+		
+		// Se añade la barra de menu a la barra de herramientas
+		JToolBar barra = new JToolBar();
+
+		barra.setFloatable(false);
+
+		barra.setBackground(Color.black);
+
+		barra.add(Box.createHorizontalGlue());
+
+		barra.add(barra_menus);
+
+		barra.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+
+		add(barra, BorderLayout.NORTH);
+		
+		// Lamina del contenido de la ventana
+		LaminaAgregar lamina = new LaminaAgregar(usuario, this);
+
+		add(lamina, BorderLayout.CENTER);
+
+		// Evitar la operación determinada al cerrar la ventana
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+
+		// Evento de ventana
+		this.addWindowListener(new WindowAdapter() {
+
+			// Método de evento por si se cierra la ventana
+			@Override
+			public void windowClosing(WindowEvent e) {
+
+				// Path de las imagenes subidas desde el aplicativo
+				String path = "src/img/img_temp/";
+
+				// Función para borrar todo el path suministrado al cerrar la ventana
+				borrarSubida(path);
+
+				// Liberar recursos
+				dispose();
+
+			}
+
+		});
+	}
+
+	// Clase privada para configurar las opciones de la barra de herramientas
+	private class Acciones extends AbstractAction {
+
+		// Contructor que recibe como parametros que deben llevar las funciones
+		public Acciones(String nombre, Icon icono, ActionListener evento) {
+
+			putValue(Action.NAME, nombre);
+
+			putValue(Action.SMALL_ICON, icono);
+
+			this.evento = evento;
+
+		}
+
+		// Método para garantizar la funcionalidad del evento de la opción
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			// TODO Auto-generated method stub
+
+			evento.actionPerformed(e);
+
+		}
+
+		// Propiedad para almacenar el evento de cada opción
+		ActionListener evento;
+	}
+
+	// Función para borrar el Path suministrado de las imagenes subidas desde el aplicativo
+	public static void borrarSubida(String ruta) {
+
+		// Objeto file donde se asigna el Path suministrado
+		File carpeta = new File(ruta);
+
+		// Verificación donde evaluamos si el path existe y si es una carpeta
+		if (carpeta.exists() && carpeta.isDirectory()) {
+
+			// Array donde almacenamos la lista de archivos que contiene el directorio
+			File[] archivos = carpeta.listFiles();
+
+			// Verificación si el array esta vacio
+			if (archivos != null) {
+
+				// Se itera el array con los archivos del fichero
+				for (File archivo : archivos) {
+
+					// Eliminar cada archivo
+					archivo.delete();
+
+				}
+
+			}
+
+		}
+
+	}
+
+}
+
+// Lamina del contenido de la ventana
+class LaminaAgregar extends JPanel {
+	
+	// Constructor de la lamina recibiendo el JFrame actual y el objeto GestionUsuarios para realizar las respectivas navegaciones
+	public LaminaAgregar(GestionUsuarios usuarios, Agregar vAhora) {
+
+		// Se reciben los parametros recibidos por el constructor
+		this.usuarios = usuarios;
+
+		this.vAhora = vAhora;
+
+		// Configuración de la lamina
+		setOpaque(false);
+
+		setLayout(new BorderLayout());
+		
+		// Título Central
+		JLabel titulo = new JLabel("Biblioteca Jose Mária");
+
+		titulo.setForeground(Color.white);
+
+		titulo.setFont(new Font("Calibri", Font.PLAIN, 60));
+
+		// Caja del título central
+		Box caja1 = Box.createHorizontalBox();
+
+		caja1.add(Box.createHorizontalGlue());
+
+		caja1.add(titulo);
+
+		caja1.add(Box.createHorizontalGlue());
+		
+		// Título del formulario
+		JLabel subTitulo = new JLabel("Agregar Libro");
+
+		subTitulo.setForeground(Color.white);
+
+		subTitulo.setFont(new Font("Calibri", Font.PLAIN, 40));
+
+		// Caja del título del formulario
+		Box caja2 = Box.createHorizontalBox();
+
+		caja2.add(Box.createHorizontalGlue());
+
+		caja2.add(subTitulo);
+
+		caja2.add(Box.createHorizontalGlue());
+		
+		// Formulario para agregar un nuevo libro
+		JPanel formulario = formularioAgregar();
+
+		// Scroll del formulario
+		JScrollPane scroll = new JScrollPane(formulario, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+		scroll.setOpaque(false);
+
+		scroll.getViewport().setOpaque(false);
+
+		scroll.setBorder(null);
+
+		scroll.getVerticalScrollBar().setUnitIncrement(16);
+
+		// Caja del formulario
+		Box caja3 = Box.createHorizontalBox();
+
+		caja3.add(Box.createHorizontalGlue());
+
+		caja3.add(scroll);
+
+		caja3.add(Box.createHorizontalGlue());
+
+		// Contenedor vertical de las cajas de los elementos creados
+		Box contenedor = Box.createVerticalBox();
+
+		contenedor.add(Box.createVerticalGlue());
+
+		contenedor.add(Box.createVerticalStrut(20));
+
+		contenedor.add(caja1);
+
+		contenedor.add(Box.createVerticalStrut(20));
+
+		contenedor.add(caja2);
+
+		contenedor.add(Box.createVerticalStrut(10));
+
+		contenedor.add(caja3);
+
+		contenedor.add(Box.createVerticalStrut(20));
+
+		// Se añade el contenedor a la lamina
+		add(contenedor, BorderLayout.CENTER);
+	}
+
+	// Objeto JPanel con el formulario para agregar los libros
+	private JPanel formularioAgregar() {
+
+		// Se instancia el objeto JPanel para construir el formulario
+		JPanel formulario = new JPanel();
+
+		// Configuración del JPanel
+		formulario.setOpaque(false);
+
+		formulario.setLayout(new BorderLayout());
+
+		formulario.setBorder(BorderFactory.createEmptyBorder(20, 10, 0, 10));
+		
+		
+		// Label y campo para el título del libro
+		tituloLabel = new JLabel("Titulo:");
+
+		tituloLabel.setForeground(Color.white);
+
+		tituloLabel.setFont(new Font("Calibri", Font.PLAIN, 30));
+
+		tituloLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		tituloCampo = new JTextField(30);
+
+		tituloCampo.setFont(new Font("Calibri", Font.PLAIN, 30));
+
+		tituloCampo.setMaximumSize(tituloCampo.getPreferredSize());
+
+		tituloCampo.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		// Caja para almacenar de forma horizontal los objetos del label y el campo del titulo del libro
+		Box caja1 = Box.createHorizontalBox();
+
+		caja1.add(tituloLabel);
+
+		caja1.add(Box.createHorizontalStrut(10));
+
+		caja1.add(tituloCampo);
+		
+		
+		// Label y campo para la editorial
+		editorialLabel = new JLabel("Editorial:");
+
+		editorialLabel.setForeground(Color.white);
+
+		editorialLabel.setFont(new Font("Calibri", Font.PLAIN, 30));
+
+		editorialLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		editorialCampo = new JTextField(20);
+
+		editorialCampo.setFont(new Font("Calibri", Font.PLAIN, 30));
+
+		editorialCampo.setMaximumSize(editorialCampo.getPreferredSize());
+
+		editorialCampo.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		// Caja para almacenar de forma horizontal los objetos del label y el campo de la editorial
+		Box caja2 = Box.createHorizontalBox();
+
+		caja2.add(editorialLabel);
+
+		caja2.add(Box.createHorizontalStrut(10));
+
+		caja2.add(editorialCampo);
+		
+		
+		// Label y campo para el autor
+		autorLabel = new JLabel("Autor:");
+
+		autorLabel.setForeground(Color.white);
+
+		autorLabel.setFont(new Font("Calibri", Font.PLAIN, 30));
+
+		autorLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		autorCampo = new JTextField(20);
+
+		autorCampo.setFont(new Font("Calibri", Font.PLAIN, 30));
+
+		autorCampo.setMaximumSize(autorCampo.getPreferredSize());
+
+		autorCampo.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		// Caja para almacenar de forma horizontal los objetos del label y el campo de el autor
+		Box caja3 = Box.createHorizontalBox();
+
+		caja3.add(autorLabel);
+
+		caja3.add(Box.createHorizontalStrut(10));
+
+		caja3.add(autorCampo);
+		
+
+		// Label y campo para el número de páginas
+		nPaginasLabel = new JLabel("No.Páginas:");
+
+		nPaginasLabel.setForeground(Color.white);
+
+		nPaginasLabel.setFont(new Font("Calibri", Font.PLAIN, 30));
+
+		nPaginasLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		nPaginasCampo = new JTextField(4);
+
+		nPaginasCampo.setFont(new Font("Calibri", Font.PLAIN, 30));
+
+		nPaginasCampo.setMaximumSize(nPaginasCampo.getPreferredSize());
+
+		nPaginasCampo.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		// Caja para almacenar de forma horizontal los objetos del label y el campo de el número de páginas
+		Box caja4 = Box.createHorizontalBox();
+
+		caja4.add(nPaginasLabel);
+
+		caja4.add(Box.createHorizontalStrut(10));
+
+		caja4.add(nPaginasCampo);
+		
+		
+		// Label y campo para el idioma
+		idiomaLabel = new JLabel("Idioma:");
+
+		idiomaLabel.setForeground(Color.white);
+
+		idiomaLabel.setFont(new Font("Calibri", Font.PLAIN, 30));
+
+		idiomaLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		idiomaCampo = new JTextField(10);
+
+		idiomaCampo.setFont(new Font("Calibri", Font.PLAIN, 30));
+
+		idiomaCampo.setMaximumSize(idiomaCampo.getPreferredSize());
+
+		idiomaCampo.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		// Caja para almacenar de forma horizontal los objetos del label y el campo de el idioma
+		Box caja5 = Box.createHorizontalBox();
+
+		caja5.add(idiomaLabel);
+
+		caja5.add(Box.createHorizontalStrut(10));
+
+		caja5.add(idiomaCampo);
+		
+		
+		// Objeto para previsualizar la imagen y el botón para añadir la imagen del libro
+		imagenPreview = new JLabel();
+
+		icon = new ImageIcon("src/img/icon/anadir.png");
+
+		img = icon.getImage().getScaledInstance(200, 200, Image.SCALE_SMOOTH);
+
+		imagenPreview.setIcon(new ImageIcon(img));
+
+		imagenPreview.setPreferredSize(new Dimension(200, 200));
+
+		imagenPreview.setBorder(BorderFactory.createLineBorder(Color.WHITE));
+
+		imagenPreview.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		imagenBoton = new JButton("Seleccionar Imagen");
+
+		imagenBoton.setForeground(Color.white);
+
+		imagenBoton.setBackground(Color.gray);
+
+		imagenBoton.setFont(new Font("Calibri", Font.PLAIN, 20));
+
+		imagenBoton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		imagenBoton.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+
+		// Se relaciona el botón con el evento de selección de imagen
+		imagenBoton.addActionListener(e -> seleccionarImagen());
+
+		// Caja para almacenar la previsualización de la imagen y el botón de añadir de forma horizontal
+		Box caja6 = Box.createHorizontalBox();
+
+		caja6.add(imagenPreview);
+
+		caja6.add(Box.createHorizontalStrut(10));
+
+		caja6.add(imagenBoton);
+		
+
+		// Botón para agregar el nuevo objeto Libro
+		JButton agregarBoton = new JButton("Agregar Libro");
+
+		agregarBoton.setForeground(Color.white);
+
+		agregarBoton.setBackground(Color.gray);
+
+		agregarBoton.setFont(new Font("Calibri", Font.PLAIN, 30));
+
+		agregarBoton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		agregarBoton.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+
+		// Instancia del evento para agregar el nuevo objeto Libro
+		Accion_Agregar evento = new Accion_Agregar();
+
+		// Se relaciona el botón con el evento
+		agregarBoton.addActionListener(evento);
+
+		// Caja para almacenar el botón de agregar de forma centrada
+		Box caja7 = Box.createVerticalBox();
+
+		caja7.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		caja7.add(agregarBoton);
+		
+		
+		// Contenedor vertical donde se agregaran los elementos del formulario
+		Box contenedor = Box.createVerticalBox();
+
+		contenedor.add(Box.createVerticalGlue());
+
+		contenedor.add(caja1);
+
+		contenedor.add(Box.createVerticalStrut(10));
+
+		contenedor.add(caja2);
+
+		contenedor.add(Box.createVerticalStrut(10));
+
+		contenedor.add(caja3);
+
+		contenedor.add(Box.createVerticalStrut(10));
+
+		contenedor.add(caja4);
+
+		contenedor.add(Box.createVerticalStrut(10));
+
+		contenedor.add(caja5);
+
+		contenedor.add(Box.createVerticalStrut(10));
+
+		contenedor.add(caja6);
+
+		contenedor.add(Box.createVerticalStrut(20));
+
+		contenedor.add(caja7);
+
+		contenedor.add(Box.createVerticalStrut(20));
+
+		// Se agrega el formulario al JPanel
+		formulario.add(contenedor, BorderLayout.CENTER);
+
+		// Se retorna el JPanel
+		return formulario;
+	}
+
+	// Función para seleccionar la imagen del libro
+	private void seleccionarImagen() {
+
+		// Se instancia el objeto para abrir el explorador de archivos y cargar la imagen
+		JFileChooser fileChooser = new JFileChooser();
+
+		fileChooser.setDialogTitle("Seleccionar Imagen");
+
+		// Definimos el estado del seleccionador de archivos
+		int resultado = fileChooser.showOpenDialog(null);
+
+		// Verificación del estado si se eligio un archivo
+		if (resultado == JFileChooser.APPROVE_OPTION) {
+
+			// Se guarda en un objeto tipo File la imagen elegida
+			imagenSeleccionada = fileChooser.getSelectedFile();
+
+			// Se configura la imagen seleccionada en el previsualizador
+			icon = new ImageIcon(imagenSeleccionada.getAbsolutePath());
+
+			img = icon.getImage().getScaledInstance(200, 200, Image.SCALE_SMOOTH);
+
+			imagenPreview.setIcon(new ImageIcon(img));
+
+		}
+
+	}
+
+	// Función para guardar la imagen dentro del proyecto JAVA
+	private void guardarImagen() {
+
+		// Verificación si la imagen seleccionada del explorador no es nula
+		if (imagenSeleccionada != null) {
+
+			// Excepción de la operación para la extracción de la imagen
+			try {
+
+				// Configurar el destino de traslado
+				destino = Paths.get("src/img/img_temp/" + imagenSeleccionada.getName());
+
+				// Sacar la copia al destino de traslado
+				Files.copy(imagenSeleccionada.toPath(), destino, StandardCopyOption.REPLACE_EXISTING);
+
+			} catch (IOException e) {
+
+				// Imprime en consola la excepción
+				e.printStackTrace();
+
+			}
+
+		}
+
+	}
+
+	
+	// Función para Agregar el nuevo objeto Libro
+	private class Accion_Agregar implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+
+			// Variable booleana para validar que el formulario no este vacio
+			boolean vacio = (tituloCampo.getText().trim().isEmpty() && editorialCampo.getText().trim().isEmpty()
+					&& autorCampo.getText().trim().isEmpty() && nPaginasCampo.getText().trim().isEmpty()
+					&& idiomaCampo.getText().trim().isEmpty() && imagenSeleccionada == null);
+
+			// Verificar por medio de la variable creada que los campos esten completados
+			if (!vacio) {
+				
+				// Se llama la instancia global de GestionLibros
+				GestionLibros gestorLibros = LlamarGlobales.getInstancia().getGestionLibros();
+
+				// Traer el iterador de los libros almacenados
+				ListIterator<Libro> libros = gestorLibros.traer_libros();
+
+				// Objeto Libro para almacenar el ultimo registro en el iterador
+				Libro ultimoLibro = null;
+
+				// Se verifica si el iterador tiene elementos
+				while (libros.hasNext()) {
+
+					// Se almacena el ultimo objeto iterado
+					ultimoLibro = libros.next();
+
+				}
+
+				// Variable para almacenar el id que va a tener el nuevo registro
+				int nuevoId = 0;
+
+				if (ultimoLibro != null) {
+
+					nuevoId = ultimoLibro.idLibro() + 1;
+
+				}
+
+				guardarImagen();
+
+				Libro libro = new Libro(nuevoId, tituloCampo.getText(), editorialCampo.getText(), autorCampo.getText(),
+						nPaginasCampo.getText(), idiomaCampo.getText(), destino.toString());
+
+				gestorLibros.agregar_libro(libro);
+
+				Panel marcoPanel = new Panel(usuarios);
+
+				marcoPanel.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+				marcoPanel.setResizable(false);
+
+				marcoPanel.setVisible(true);
+
+				vAhora.setVisible(false);
+			} else {
+
+				JOptionPane.showMessageDialog(new JPanel(), "Por favor, llene todos los campos", "Campos Vacios", 2);
+
+			}
+
+		}
+
+	}
+
+	private JLabel tituloLabel;
+
+	private JTextField tituloCampo;
+
+	private JLabel editorialLabel;
+
+	private JTextField editorialCampo;
+
+	private JLabel autorLabel;
+
+	private JTextField autorCampo;
+
+	private JLabel nPaginasLabel;
+
+	private JTextField nPaginasCampo;
+
+	private JLabel idiomaLabel;
+
+	private JTextField idiomaCampo;
+
+	private JLabel imagenPreview;
+
+	private JButton imagenBoton;
+
+	private File imagenSeleccionada;
+
+	private Path destino;
+
+	private ImageIcon icon;
+
+	private Image img;
+
+	private GestionUsuarios usuarios;
+
+	private Agregar vAhora;
+}

@@ -1,0 +1,65 @@
+package biblioteca.com.funciones;
+
+import java.util.Arrays;
+
+import biblioteca.com.clases.Usuario;
+
+// Clase GestionUsuarios
+/*
+ * Aca se trabajara cargando algunos usuarios de prueba por medio de un Array, se controlara por 
+ * medio de métodos todo lo que tiene que ver con una sesión basica y gestion de roles 
+ * para darle coherencia al este sistema de gestión de bibliotecas
+ */
+public class GestionUsuarios {
+
+	// Array para almacenar los usuarios de prueba mediante un objeto tipo Usuario
+	private Usuario[] usuarios = {
+			new Usuario(1, "Carlos Andrés Salamanca Urrego", "C.C", "342.657.908", "SalaCarlos",
+					"SalaCarlos".toCharArray(), "1"),
+			new Usuario(2, "Melissa Alexandra Peralta Castro", "C.C", "574.874.654", "AlexaCas",
+					"AlexaCas".toCharArray(), "1"),
+			new Usuario(3, "Felipe Eduardo García Pérez", "C.C", "568.432.432", "GarEdu", "GarEdu".toCharArray(), "1"),
+			new Usuario(4, "Hernan Camilo Pedraza Contreras", "C.C", "694.242.432", "Admin1", "Admin1".toCharArray(),
+					"2"), };
+
+	// Método para verificar si el usuario que se ingresa en el formulario de Inicio existe en el sistema
+	public boolean inicio_sesion(String usuario, char[] contrasena) {
+
+		// Método para almacenar el resultado de la evaluación de login
+		boolean resultado = false;
+
+		// Se lee el array con los usuarios de prueba cargados
+		for (int i = 0; i < usuarios.length; i++) {
+
+			// Verificación por medio del alias de usuario y la contraseña si el usuario ingresado existe
+			if (usuarios[i].aliasUsuario().equalsIgnoreCase(usuario)
+					&& Arrays.equals(usuarios[i].contrasenaUsuario(), contrasena)) {
+				
+				// Si el usuario es compatible se ingresa la coincidencia a una variable tipo Usuario
+				// para poder realizar los movimientos de solicitud, prestamo y devolución de los libros.
+				// Correspondientes al usuario logueado
+				usuarioLogueado = usuarios[i];
+				
+				// Se asigna verdadero al resultado de la evaluación de la verificación
+				resultado = true;
+			}
+
+		}
+
+		// Se retorna el resultado de la operación
+		return resultado;
+
+	}
+
+	public Usuario traer_logueado() {
+
+		return usuarioLogueado;
+
+	}
+
+	public void cerrar_sesion() {
+		usuarioLogueado = null;
+	}
+
+	private Usuario usuarioLogueado;
+}

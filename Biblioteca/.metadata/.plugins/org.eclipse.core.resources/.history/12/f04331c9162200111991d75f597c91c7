@@ -1,0 +1,47 @@
+package biblioteca.com.funciones;
+
+// Clase LlamarGlobales
+/*
+ * Esta clase se sigue evaluando ya que para el objetivo de este proyecto
+ * es pasable usarla pero en producción lo que se explica acontinuación
+ * no se puede hacer por la seguridad de los datos.
+ * 
+ * Aca llamaremos por unica ver las clases GestionMovimientos y GestionLibros
+ * para que las acciones que se realizan en el aplicativo sean sincronizadas en cada
+ * frame porque al instancias varias veces cada clase se crea un objeto nuevo
+ */
+public class LlamarGlobales {
+
+	private static LlamarGlobales instancia;
+
+	private GestionMovimientos gestionMovimientos;
+
+	private GestionLibros gestionLibros;
+
+	private LlamarGlobales() {
+		gestionMovimientos = new GestionMovimientos();
+
+		gestionLibros = new GestionLibros();
+	}
+
+	public static LlamarGlobales getInstancia() {
+		if (instancia == null) {
+			instancia = new LlamarGlobales();
+		}
+
+		return instancia;
+	}
+
+	public GestionMovimientos getGestionMovimientos() {
+
+		return gestionMovimientos;
+
+	}
+
+	public GestionLibros getGestionLibros() {
+
+		return gestionLibros;
+
+	}
+
+}
